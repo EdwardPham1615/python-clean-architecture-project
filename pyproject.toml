@@ -1,0 +1,46 @@
+[project]
+name = "python-clean-architecture-project"
+version = "1.0.0"
+description = "Template for python application following clean architecture"
+authors = [{ name = "Edward Pham", email = "edwardpham1615@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic",
+    "asyncpg",
+    "dynaconf",
+    "fastapi",
+    "loguru",
+    "orjson",
+    "psycopg2-binary",
+    "pydantic",
+    "sqlalchemy",
+    "uvicorn",
+    "dependency-injector"
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 88  # PEP8 standard line length
+indent-width = 4  # PEP8 standard indent width
+exclude = [".venv", "build", "dist", "__pycache__"]  # Exclude common directories
+fix = true  # Auto-fix issues when possible
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # E for PEP8, F for linting, I for import sorting
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"

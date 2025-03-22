@@ -1,0 +1,26 @@
+version: "3.3"
+
+networks:
+  clean-arc-network:
+    driver: bridge
+
+services:
+  clean-arc-relational-db:
+    image: docker.io/bitnami/postgresql:15
+    container_name: clean-arc-relational-db
+    ports:
+      - "5432:5432"
+    networks:
+      - clean-arc-network
+    environment:
+      POSTGRESQL_USERNAME: "cleanarc"
+      POSTGRESQL_PASSWORD: "cleanarc!123#"
+      POSTGRESQL_DATABASE: "cleanarc"
+    volumes:
+      - "./cleanarc_db_data:/bitnami/postgresql"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
