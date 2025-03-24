@@ -1,4 +1,4 @@
 [development]
 LOG_LEVEL = "INFO"
 UVICORN_WORKERS = 1
-RELATIONAL_DB = { VENDOR = "postgres", URL = "postgresql+asyncpg://cleanarc:cleanarc!123#@localhost:5432/cleanarc", ENABLE_AUTO_MIGRATE = true}
+RELATIONAL_DB = '@json { "VENDOR": "postgres", "URL": "postgresql+asyncpg://cleanarc:cleanarc!123#@localhost:5432/cleanarc", "ENABLE_AUTO_MIGRATE": true}'
