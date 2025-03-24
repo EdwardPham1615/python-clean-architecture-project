@@ -98,6 +98,8 @@ Ensure you have the following installed:
 
 - Docker & Docker Compose (Optional)
 
+- make (Optional)
+
 ### Installation & Setup
 
 1. **Clone the Repository**
@@ -131,7 +133,27 @@ Ensure you have the following installed:
    python main.py
    ```
 
-5. **Access the API**
+5. **Alternative run with docker**
+
+   ```sh
+   # if you do not want to start from scratch, just run with docker
+   # using commands from Makefile
+   
+   # build an image
+   make build
+   
+   # start
+   make start
+   
+   # stop
+   make stop
+   
+   # restart
+   make restart
+
+   ```
+
+6. **Access the API**
 
    - Open `http://127.0.0.1:8080/docs` for Swagger UI.
    - Use `http://127.0.0.1:8080/redoc` for Redoc documentation.
