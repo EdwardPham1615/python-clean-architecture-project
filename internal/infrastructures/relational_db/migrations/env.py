@@ -8,7 +8,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from config import app_config
 from internal.infrastructures.relational_db import Base
-from internal.infrastructures.relational_db.postgres.models import post, comment  # noqa: F811
+from internal.infrastructures.relational_db.postgres.models import (  # noqa: F811
+    comment,
+    post,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
