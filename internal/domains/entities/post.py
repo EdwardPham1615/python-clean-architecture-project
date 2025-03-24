@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, ValidationError
-from pydantic import UUID4
+from pydantic import UUID4, BaseModel, ConfigDict, ValidationError
 
-from utils.time_utils import from_str_to_dt, DATETIME_DEFAULT_FORMAT
+from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_str_to_dt
 
 
 class PostEntity(BaseModel):

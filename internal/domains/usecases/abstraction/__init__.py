@@ -1,2 +1,2 @@
-from .post import AbstractPostUC
 from .comment import AbstractCommentUC
+from .post import AbstractPostUC

@@ -1,12 +1,12 @@
 from typing import Annotated, Optional
 
+from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
 from loguru import logger
-from pydantic import ValidationError, UUID4, Field
+from pydantic import UUID4, Field, ValidationError
 
-from internal.patterns import Container
 from internal.controllers.http.payloads import (
     CreateCommentRequestV1,
     UpdateCommentRequestV1,
@@ -20,26 +20,25 @@ from internal.controllers.responses.error_code import (
     common_internal_error,
     common_validation_error,
     create_comment_fail,
+    delete_comment_fail,
     get_comment_fail,
     update_comment_fail,
-    delete_comment_fail,
 )
 from internal.controllers.responses.success_code import (
     create_comment_success,
+    delete_comment_success,
     get_comment_success,
     update_comment_success,
-    delete_comment_success,
 )
 from internal.domains.entities import GetMultiCommentsFilter
 from internal.domains.errors import (
     CreateCommentException,
+    DeleteCommentException,
     GetCommentException,
     UpdateCommentException,
-    DeleteCommentException,
 )
-from dependency_injector.wiring import Provide, inject
-
 from internal.domains.services import CommentSVC
+from internal.patterns import Container
 
 router = APIRouter()
 

@@ -1,10 +1,10 @@
 import abc
-from typing import Tuple, Optional, List
+from typing import List, Optional, Tuple
 
 from internal.domains.entities import (
     CreatePostPayload,
-    PostEntity,
     GetMultiPostsFilter,
+    PostEntity,
     UpdatePostPayload,
 )
 

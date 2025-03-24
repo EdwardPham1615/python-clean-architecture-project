@@ -1,7 +1,7 @@
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 from pydantic import UUID4
-from sqlalchemy import insert, select, UnaryExpression, desc, asc, func, update, delete
+from sqlalchemy import UnaryExpression, asc, delete, desc, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from internal.domains.entities import CommentEntity, GetMultiCommentsFilter
@@ -10,7 +10,7 @@ from internal.infrastructures.relational_db.postgres.models import (
     Comment,
     CommentModelMapper,
 )
-from utils.time_utils import from_str_to_dt, DATETIME_DEFAULT_FORMAT
+from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_str_to_dt
 
 
 class CommentRepo(AbstractCommentRepo):

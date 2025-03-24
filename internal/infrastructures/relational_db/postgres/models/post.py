@@ -1,10 +1,10 @@
 import uuid
 
-from sqlalchemy import Column, UUID, Text, func
+from sqlalchemy import UUID, Column, Text, func
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from internal.domains.entities import PostEntity
 from internal.infrastructures.relational_db.base import Base
-from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 
 class Post(Base):

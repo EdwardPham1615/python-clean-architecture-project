@@ -1,2 +1,2 @@
-from .post import Post, PostModelMapper
 from .comment import Comment, CommentModelMapper
+from .post import Post, PostModelMapper

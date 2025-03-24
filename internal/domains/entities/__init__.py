@@ -1,7 +1,7 @@
-from .post import PostEntity, GetMultiPostsFilter, CreatePostPayload, UpdatePostPayload
 from .comment import (
     CommentEntity,
-    GetMultiCommentsFilter,
     CreateCommentPayload,
+    GetMultiCommentsFilter,
     UpdateCommentPayload,
 )
+from .post import CreatePostPayload, GetMultiPostsFilter, PostEntity, UpdatePostPayload

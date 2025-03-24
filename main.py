@@ -3,7 +3,7 @@ import asyncio
 import uvicorn
 
 from config import app_config
-from internal.app import init_http_server, init_health_check_server
+from internal.app import init_health_check_server, init_http_server
 from internal.patterns import Container, initialize_relational_db
 
 

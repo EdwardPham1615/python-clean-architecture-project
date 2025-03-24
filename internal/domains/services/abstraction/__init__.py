@@ -1,2 +1,2 @@
-from .post import AbstractPostSVC
 from .comment import AbstractCommentSVC
+from .post import AbstractPostSVC

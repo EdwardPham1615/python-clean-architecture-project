@@ -1,12 +1,12 @@
-from .post import (
-    CreatePostException,
-    GetPostException,
-    UpdatePostException,
-    DeletePostException,
-)
 from .comment import (
     CreateCommentException,
+    DeleteCommentException,
     GetCommentException,
     UpdateCommentException,
-    DeleteCommentException,
+)
+from .post import (
+    CreatePostException,
+    DeletePostException,
+    GetPostException,
+    UpdatePostException,
 )

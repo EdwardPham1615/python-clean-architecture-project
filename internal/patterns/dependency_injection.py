@@ -1,11 +1,11 @@
 from dependency_injector import containers, providers
 
-from internal.domains.services import PostSVC, CommentSVC
-from internal.domains.usecases import PostUC, CommentUC
-from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitOfWork
-from internal.infrastructures.relational_db.base import Base
-from internal.infrastructures.relational_db import Database, PostRepo, CommentRepo
 from config import app_config
+from internal.domains.services import CommentSVC, PostSVC
+from internal.domains.usecases import CommentUC, PostUC
+from internal.infrastructures.relational_db import CommentRepo, Database, PostRepo
+from internal.infrastructures.relational_db.base import Base
+from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitOfWork
 
 
 class Container(containers.DeclarativeContainer):
