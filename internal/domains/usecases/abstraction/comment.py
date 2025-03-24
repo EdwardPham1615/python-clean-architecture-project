@@ -1,5 +1,5 @@
 import abc
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 from internal.domains.entities import (
     CommentEntity,
@@ -7,11 +7,11 @@ from internal.domains.entities import (
     GetMultiCommentsFilter,
     UpdateCommentPayload,
 )
-from internal.infrastructures.relational_db.patterns import (
-    AbstractUnitOfWork as RelationalDBUnitOfWork,
-)
 from internal.infrastructures.relational_db.abstraction import (
     AbstractCommentRepo as RelationalDBAbstractCommentRepo,
+)
+from internal.infrastructures.relational_db.patterns import (
+    AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
 
 

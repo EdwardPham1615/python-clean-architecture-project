@@ -1,11 +1,8 @@
-from typing import Optional, Annotated
+from typing import Annotated, Optional
 
-from pydantic import BaseModel, Field, UUID4, ValidationError
+from pydantic import UUID4, BaseModel, Field, ValidationError
 
-from internal.domains.entities import (
-    CreateCommentPayload,
-    UpdateCommentPayload,
-)
+from internal.domains.entities import CreateCommentPayload, UpdateCommentPayload
 
 
 class CreateCommentRequestV1(BaseModel):

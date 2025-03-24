@@ -1,10 +1,10 @@
 import abc
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from internal.domains.entities import PostEntity, GetMultiPostsFilter
+from internal.domains.entities import GetMultiPostsFilter, PostEntity
 
 
 class AbstractPostRepo(abc.ABC):

@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from internal.domains.entities import CommentEntity
-from utils.time_utils import from_dt_to_str, DATETIME_DEFAULT_FORMAT
+from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_dt_to_str
 
 
 class CreateCommentResourceV1(BaseModel):

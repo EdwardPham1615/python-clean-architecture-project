@@ -6,9 +6,9 @@ from fastapi.responses import ORJSONResponse
 from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from internal.controllers.responses import DataResponse, MessageResponse
-from internal.controllers.http.v1.routes import api_router as api_router_v1
 
+from internal.controllers.http.v1.routes import api_router as api_router_v1
+from internal.controllers.responses import DataResponse, MessageResponse
 
 app_status = {"alive": True, "status_code": 200, "message": "I'm fine"}
 

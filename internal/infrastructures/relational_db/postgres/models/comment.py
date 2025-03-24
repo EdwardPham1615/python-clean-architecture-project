@@ -1,9 +1,10 @@
 import uuid
-from sqlalchemy import Column, UUID, func, Text
+
+from sqlalchemy import UUID, Column, Text, func
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from internal.domains.entities import CommentEntity
 from internal.infrastructures.relational_db.base import Base
-from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 
 class Comment(Base):

@@ -1,18 +1,18 @@
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 from loguru import logger
 
 from internal.domains.entities import (
-    CreateCommentPayload,
     CommentEntity,
+    CreateCommentPayload,
     GetMultiCommentsFilter,
     UpdateCommentPayload,
 )
 from internal.domains.errors import (
     CreateCommentException,
+    DeleteCommentException,
     GetCommentException,
     UpdateCommentException,
-    DeleteCommentException,
 )
 from internal.domains.services.abstraction.comment import AbstractCommentSVC
 from internal.domains.usecases.abstraction import AbstractCommentUC

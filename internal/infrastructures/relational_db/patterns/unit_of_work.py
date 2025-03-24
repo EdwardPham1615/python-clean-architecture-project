@@ -4,13 +4,10 @@ from typing import Any, Optional, Type
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 
+from internal.infrastructures.relational_db import CommentRepo, PostRepo
 from internal.infrastructures.relational_db.abstraction import (
-    AbstractPostRepo,
     AbstractCommentRepo,
-)
-from internal.infrastructures.relational_db import (
-    PostRepo,
-    CommentRepo,
+    AbstractPostRepo,
 )
 
 
