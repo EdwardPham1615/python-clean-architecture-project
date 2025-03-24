@@ -22,6 +22,7 @@ dependencies = [
 [tool.uv]
 dev-dependencies = [
     "ruff",
+    "isort"
 ]
 
 [tool.ruff]
