@@ -28,7 +28,16 @@ class AppConfig(BaseModel):
 
 # Load and validate configuration
 try:
-    app_config = AppConfig(**settings.as_dict())
+    app_config = AppConfig(
+        ENV_FOR_DYNACONF=settings.ENV_FOR_DYNACONF,
+        LOG_LEVEL=settings.LOG_LEVEL,
+        UVICORN_WORKERS=settings.UVICORN_WORKERS,
+        RELATIONAL_DB=RelationalDBConfig(
+            VENDOR=settings.RELATIONAL_DB.VENDOR,
+            URL=settings.RELATIONAL_DB.URL,
+            ENABLE_AUTO_MIGRATE=settings.RELATIONAL_DB.ENABLE_AUTO_MIGRATE,
+        ),
+    )
     logger.info("Configuration loaded successfully!")
 except Exception as exc:
     logger.error(f"Configuration validation error: {exc}")
