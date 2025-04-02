@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from config import app_config
 from internal.domains.services import CommentSVC, PostSVC
 from internal.domains.usecases import CommentUC, PostUC
+from internal.infrastructures.authentication_service import AuthenticationServiceClient
 from internal.infrastructures.relational_db import CommentRepo, Database, PostRepo
 from internal.infrastructures.relational_db.base import Base
 from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitOfWork
@@ -14,6 +15,7 @@ class Container(containers.DeclarativeContainer):
             __name__,
             "internal.controllers.http.v1.endpoints.post",
             "internal.controllers.http.v1.endpoints.comment",
+            "internal.app.middlewares",
         ]
     )
 
@@ -32,6 +34,17 @@ class Container(containers.DeclarativeContainer):
     relational_db_session = providers.Resource(get_relational_db_session, relational_db)
     relational_db_scoped_session = providers.Resource(
         relational_db.provided.scoped_session, relational_db
+    )
+
+    ## Authentication Service
+    authentication_svc = providers.Resource(
+        AuthenticationServiceClient,
+        url=app_config.authentication_service.url,
+        admin_username=app_config.authentication_service.admin_username,
+        admin_password=app_config.authentication_service.admin_password,
+        realm=app_config.authentication_service.realm,
+        client_id=app_config.authentication_service.client_id,
+        client_secret=app_config.authentication_service.client_secret,
     )
 
     ### Repositories
