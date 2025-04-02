@@ -1,5 +1,3 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
@@ -7,6 +5,7 @@ from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from internal.app import JWTAuthMiddleware
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
 
@@ -14,18 +13,6 @@ app_status = {"alive": True, "status_code": 200, "message": "I'm fine"}
 
 
 def init_http_server() -> FastAPI:
-    # @asynccontextmanager
-    # async def lifespan(app: FastAPI):
-    #     # startup
-    #
-    #     yield
-    #
-    #     # shutdown
-    #     logger.info("Shutting down")
-    #     app_status["alive"] = False
-    #     app_status["status_code"] = 500
-    #     app_status["message"] = "Shut down"
-
     server_ = FastAPI(default_response_class=ORJSONResponse)
 
     server_.add_middleware(
@@ -35,6 +22,7 @@ def init_http_server() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    server_.add_middleware(middleware_class=JWTAuthMiddleware)
 
     @server_.exception_handler(HTTPException)
     async def http_exception_handler(_: Request, exc: HTTPException):
