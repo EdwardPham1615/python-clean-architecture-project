@@ -16,7 +16,9 @@ dependencies = [
     "pydantic",
     "sqlalchemy",
     "uvicorn",
-    "dependency-injector"
+    "dependency-injector",
+    "pyjwt",
+    "python-keycloak"
 ]
 
 [tool.uv]
