@@ -5,3 +5,4 @@ from .comment import (
     UpdateCommentPayload,
 )
 from .post import CreatePostPayload, GetMultiPostsFilter, PostEntity, UpdatePostPayload
+from .user import UserEntity

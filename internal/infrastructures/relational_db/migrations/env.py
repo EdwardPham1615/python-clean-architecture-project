@@ -11,6 +11,7 @@ from internal.infrastructures.relational_db import Base
 from internal.infrastructures.relational_db.postgres.models import (  # noqa: F811
     comment,
     post,
+    user,
 )
 
 # this is the Alembic Config object, which provides

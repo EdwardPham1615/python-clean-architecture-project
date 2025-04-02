@@ -24,6 +24,7 @@ if DATABASE_VENDOR == SupportedDatabaseVendor.POSTGRES.value:
     from internal.infrastructures.relational_db.postgres.repositories import (
         CommentRepo,
         PostRepo,
+        UserRepo,
     )
 else:
     raise RuntimeError(f"Invalid database vendor {DATABASE_VENDOR}")
