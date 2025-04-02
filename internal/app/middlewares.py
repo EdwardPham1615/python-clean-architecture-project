@@ -14,7 +14,7 @@ from internal.controllers.responses.error_code import (
     common_token_expired_error,
 )
 from internal.infrastructures.authentication_service.abstraction import (
-    AuthenticationService,
+    AbstractAuthenticationService,
 )
 from internal.patterns import Container
 
@@ -25,7 +25,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         self,
         request: Request,
         call_next,
-        authentication_svc: AuthenticationService = Provide[
+        authentication_svc: AbstractAuthenticationService = Provide[
             Container.authentication_svc
         ],
     ):

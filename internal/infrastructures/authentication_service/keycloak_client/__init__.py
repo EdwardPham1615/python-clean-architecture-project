@@ -3,11 +3,11 @@ from typing import Optional
 from keycloak import KeycloakAdmin, KeycloakOpenID, KeycloakOpenIDConnection
 
 from internal.infrastructures.authentication_service.abstraction import (
-    AuthenticationService,
+    AbstractAuthenticationService,
 )
 
 
-class KeycloakClient(AuthenticationService):
+class KeycloakClient(AbstractAuthenticationService):
     def __init__(
         self,
         url: str,

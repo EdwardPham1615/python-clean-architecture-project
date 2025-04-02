@@ -1,7 +1,7 @@
 import abc
 
 
-class AuthenticationService(abc.ABC):
+class AbstractAuthenticationService(abc.ABC):
     url: str
     admin_username: str
     admin_password: str
