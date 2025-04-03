@@ -2,10 +2,8 @@ from enum import Enum
 
 from config import app_config
 
-from .abstraction import AbstractCommentRepo, AbstractPostRepo
+from .abstraction import AbstractCommentRepo, AbstractPostRepo, AbstractUserRepo
 from .base import Base
-
-# from .patterns import RelationalDBContainer
 from .postgres import PostgresDatabase
 
 

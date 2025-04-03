@@ -10,3 +10,9 @@ from .post import (
     GetPostException,
     UpdatePostException,
 )
+from .user import (
+    CreateUserException,
+    DeleteUserException,
+    GetUserException,
+    UpdateUserException,
+)

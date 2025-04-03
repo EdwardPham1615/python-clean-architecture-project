@@ -5,6 +5,7 @@ from loguru import logger
 from internal.domains.entities import (
     CommentEntity,
     CreatePostPayload,
+    DeletePostPayload,
     GetMultiCommentsFilter,
     GetMultiPostsFilter,
     PostEntity,
@@ -16,10 +17,15 @@ from internal.domains.errors import (
     DeletePostException,
     GetCommentException,
     GetPostException,
+    GetUserException,
     UpdatePostException,
 )
 from internal.domains.services.abstraction import AbstractPostSVC
-from internal.domains.usecases.abstraction import AbstractCommentUC, AbstractPostUC
+from internal.domains.usecases.abstraction import (
+    AbstractCommentUC,
+    AbstractPostUC,
+    AbstractUserUC,
+)
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
@@ -31,10 +37,12 @@ class PostSVC(AbstractPostSVC):
         relational_db_uow: RelationalDBUnitOfWork,
         post_uc: AbstractPostUC,
         comment_uc: AbstractCommentUC,
+        user_uc: AbstractUserUC,
     ):
         self._relational_db_uow = relational_db_uow
         self._post_uc = post_uc
         self._comment_uc = comment_uc
+        self._user_uc = user_uc
 
     async def create(
         self, payload: CreatePostPayload
@@ -42,15 +50,32 @@ class PostSVC(AbstractPostSVC):
         new_post: Optional[PostEntity] = None
         error: Optional[Exception] = None
 
-        try:
-            # start transaction
-            async with self._relational_db_uow as session:
-                new_post = await self._post_uc.create(payload=payload, uow=session)
-        except CreatePostException as exc:
-            logger.error(exc)
-            error = exc
+        if not payload.owner_id or payload.owner_id == "":
+            return None, CreatePostException("Missing owner id")
 
-        return new_post, error
+        # start transaction
+        async with self._relational_db_uow as session:
+            try:
+                exited_user = await self._user_uc.get_by_id(
+                    id_=payload.owner_id, uow=session
+                )
+                if not exited_user:
+                    return None, CreatePostException(
+                        f"Not found user: {payload.owner_id}"
+                    )
+            except GetUserException as exc:
+                logger.error(exc)
+                error = exc
+                return None, error
+
+            try:
+                new_post = await self._post_uc.create(payload=payload, uow=session)
+            except CreatePostException as exc:
+                logger.error(exc)
+                error = exc
+                return None, error
+
+        return new_post, None
 
     async def get_by_id(
         self, id_: str
@@ -87,28 +112,57 @@ class PostSVC(AbstractPostSVC):
     async def update(self, payload: UpdatePostPayload) -> Optional[Exception]:
         error: Optional[Exception] = None
 
-        try:
-            # start transaction
-            async with self._relational_db_uow as session:
-                await self._post_uc.update(payload=payload, uow=session)
-        except UpdatePostException as exc:
-            logger.error(exc)
-            error = exc
-
-        return error
-
-    async def delete(self, id_: str) -> Optional[Exception]:
-        error: Optional[Exception] = None
+        if not payload.owner_id or payload.owner_id == "":
+            return UpdatePostException("Missing owner id")
 
         # start transaction
         async with self._relational_db_uow as session:
+            try:
+                exited_user = await self._user_uc.get_by_id(
+                    id_=payload.owner_id, uow=session
+                )
+                if not exited_user:
+                    return UpdatePostException(f"Not found user: {payload.owner_id}")
+            except GetUserException as exc:
+                logger.error(exc)
+                error = exc
+                return error
+
+            try:
+                await self._post_uc.update(payload=payload, uow=session)
+            except UpdatePostException as exc:
+                logger.error(exc)
+                error = exc
+                return error
+
+        return None
+
+    async def delete(self, payload: DeletePostPayload) -> Optional[Exception]:
+        error: Optional[Exception] = None
+
+        if not payload.owner_id or payload.owner_id == "":
+            return UpdatePostException("Missing owner id")
+
+        # start transaction
+        async with self._relational_db_uow as session:
+            try:
+                exited_user = await self._user_uc.get_by_id(
+                    id_=payload.owner_id, uow=session
+                )
+                if not exited_user:
+                    return DeletePostException(f"Not found user: {payload.owner_id}")
+            except GetUserException as exc:
+                logger.error(exc)
+                error = exc
+                return error
+
             # get all comments of this post
             try:
                 comments: List[CommentEntity] = []
                 (comments, _) = await self._comment_uc.get_multi(
                     filter_=GetMultiCommentsFilter(
                         enable_count=False,
-                        post_id=id_,
+                        post_id=payload.id_,
                     ),
                     uow=session,
                 )
@@ -128,7 +182,7 @@ class PostSVC(AbstractPostSVC):
 
             # delete this post
             try:
-                await self._post_uc.delete(id_=id_, uow=session)
+                await self._post_uc.delete(payload=payload, uow=session)
             except DeletePostException as exc:
                 logger.error(exc)
                 error = exc

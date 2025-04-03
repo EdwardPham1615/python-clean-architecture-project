@@ -1,10 +1,15 @@
 from dependency_injector import containers, providers
 
 from config import app_config
-from internal.domains.services import CommentSVC, PostSVC
-from internal.domains.usecases import CommentUC, PostUC
+from internal.domains.services import CommentSVC, PostSVC, UserSVC
+from internal.domains.usecases import CommentUC, PostUC, UserUC
 from internal.infrastructures.authentication_service import AuthenticationServiceClient
-from internal.infrastructures.relational_db import CommentRepo, Database, PostRepo
+from internal.infrastructures.relational_db import (
+    CommentRepo,
+    Database,
+    PostRepo,
+    UserRepo,
+)
 from internal.infrastructures.relational_db.base import Base
 from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitOfWork
 
@@ -50,6 +55,7 @@ class Container(containers.DeclarativeContainer):
     ### Repositories
     post_repo = providers.Factory(PostRepo, session=relational_db_session)
     comment_repo = providers.Factory(CommentRepo, session=relational_db_session)
+    user_repo = providers.Factory(UserRepo, session=relational_db_session)
 
     ### Unit of Work
     relational_db_uow = providers.Factory(
@@ -58,12 +64,14 @@ class Container(containers.DeclarativeContainer):
         scoped_session=relational_db_scoped_session,
         post_repo=post_repo,
         comment_repo=comment_repo,
+        user_repo=user_repo,
     )
 
     # Domains
     ## UseCases
     post_uc = providers.Factory(PostUC, relational_db_post_repo=post_repo)
     comment_uc = providers.Factory(CommentUC, relational_db_comment_repo=comment_repo)
+    user_uc = providers.Factory(UserUC, relational_db_user_repo=user_repo)
 
     ## Services
     post_svc = providers.Factory(
@@ -71,9 +79,20 @@ class Container(containers.DeclarativeContainer):
         relational_db_uow=relational_db_uow,
         post_uc=post_uc,
         comment_uc=comment_uc,
+        user_uc=user_uc,
     )
     comment_svc = providers.Factory(
-        CommentSVC, relational_db_uow=relational_db_uow, comment_uc=comment_uc
+        CommentSVC,
+        relational_db_uow=relational_db_uow,
+        comment_uc=comment_uc,
+        user_uc=user_uc,
+    )
+    user_svc = providers.Factory(
+        UserSVC,
+        relational_db_uow=relational_db_uow,
+        user_uc=user_uc,
+        post_uc=post_uc,
+        comment_uc=comment_uc,
     )
 
 

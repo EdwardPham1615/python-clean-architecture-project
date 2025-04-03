@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 
 from internal.domains.entities import (
     CreatePostPayload,
+    DeletePostPayload,
     GetMultiPostsFilter,
     PostEntity,
     UpdatePostPayload,
@@ -43,5 +44,7 @@ class AbstractPostUC(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def delete(self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None):
+    async def delete(
+        self, payload: DeletePostPayload, uow: Optional[RelationalDBUnitOfWork] = None
+    ):
         raise NotImplementedError
