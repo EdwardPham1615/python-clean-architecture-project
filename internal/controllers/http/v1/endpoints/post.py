@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
 from loguru import logger
@@ -24,7 +24,7 @@ from internal.controllers.responses.success_code import (
     get_post_success,
     update_post_success,
 )
-from internal.domains.entities import GetMultiPostsFilter
+from internal.domains.entities import DeletePostPayload, GetMultiPostsFilter
 from internal.domains.errors import (
     CreatePostException,
     DeletePostException,
@@ -40,12 +40,16 @@ router = APIRouter()
 @router.post("", response_model=DataResponse)
 @inject
 async def create(
+    ctx_req_: Request,
     req_: CreatePostRequestV1,
     svc: Annotated[PostSVC, Depends(Provide[Container.post_svc])],
 ):
     # Default res
     res = DataResponse(message=common_internal_error)
     try:
+        # get user id from context request
+        user_id = ctx_req_.state.user_id
+
         # validate request body
         try:
             req_.validate_()
@@ -59,6 +63,7 @@ async def create(
 
         # convert request body to payload
         payload = req_.to_payload()
+        payload.owner_id = str(user_id)
 
         # execute
         (new_post, error_) = await svc.create(payload=payload)
@@ -182,6 +187,7 @@ async def get_multi(
 @router.put("/{post_id}", response_model=DataResponse)
 @inject
 async def update(
+    ctx_req_: Request,
     post_id: str,
     req_: UpdatePostRequestV1,
     svc: Annotated[PostSVC, Depends(Provide[Container.post_svc])],
@@ -189,6 +195,9 @@ async def update(
     # Default res
     res = DataResponse(message=common_internal_error)
     try:
+        # get user id from context request
+        user_id = ctx_req_.state.user_id
+
         # validate request body
         try:
             UUID4(post_id)
@@ -204,6 +213,7 @@ async def update(
         # convert request body to payload
         payload = req_.to_payload()
         payload.id_ = post_id
+        payload.owner_id = str(user_id)
 
         # execute
         error_ = await svc.update(payload=payload)
@@ -226,12 +236,16 @@ async def update(
 @router.delete("/{post_id}", response_model=DataResponse)
 @inject
 async def delete(
+    ctx_req_: Request,
     post_id: str,
     svc: Annotated[PostSVC, Depends(Provide[Container.post_svc])],
 ):
     # Default res
     res = DataResponse(message=common_internal_error)
     try:
+        # get user id from context request
+        user_id = ctx_req_.state.user_id
+
         # validate request body
         try:
             UUID4(post_id)
@@ -243,8 +257,14 @@ async def delete(
                 content=jsonable_encoder(res),
             )
 
+        # build payload
+        payload = DeletePostPayload(
+            id_=post_id,
+            owner_id=str(user_id),
+        )
+
         # execute
-        error_ = await svc.delete(id_=post_id)
+        error_ = await svc.delete(payload=payload)
         if error_:
             if isinstance(error_, DeletePostException):
                 res = DataResponse(message=delete_post_fail)

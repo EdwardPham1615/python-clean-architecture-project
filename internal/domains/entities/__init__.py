@@ -1,3 +1,4 @@
+from .authentication import JWTPayload, RealmAccess, ResourceAccess, ResourceAccessRoles
 from .comment import (
     CommentEntity,
     CreateCommentPayload,

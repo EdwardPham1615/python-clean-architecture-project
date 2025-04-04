@@ -4,6 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
 from jwcrypto.jws import InvalidJWSObject
 from jwcrypto.jwt import JWTExpired
+from loguru import logger
 from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -13,6 +14,7 @@ from internal.controllers.responses.error_code import (
     common_missing_or_invalid_token_error,
     common_token_expired_error,
 )
+from internal.domains.entities import JWTPayload
 from internal.infrastructures.authentication_service.abstraction import (
     AbstractAuthenticationService,
 )
@@ -38,17 +40,35 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
         token = auth_header.split(" ")[1]  # Extract token
         try:
-            payload = await authentication_svc.decode_token(token=token)
-            request.state.user = payload  # Store user info in request state
+            raw_payload = await authentication_svc.decode_token(token=token)
+            try:
+                payload = JWTPayload(**raw_payload)
+            except Exception as exc:
+                logger.error(exc)
+                res = DataResponse(message=common_invalid_token_error)
+                return ORJSONResponse(
+                    status_code=common_invalid_token_error.status_code,
+                    content=jsonable_encoder(res),
+                )
+            user_id = payload.sub
+            if not user_id:
+                res = DataResponse(message=common_invalid_token_error)
+                return ORJSONResponse(
+                    status_code=common_invalid_token_error.status_code,
+                    content=jsonable_encoder(res),
+                )
+            request.state.user_id = user_id  # Store user id in request state
         except JWTExpired:
             res = DataResponse(message=common_token_expired_error)
             return ORJSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder(res)
+                status_code=common_token_expired_error.status_code,
+                content=jsonable_encoder(res),
             )
         except InvalidJWSObject:
             res = DataResponse(message=common_invalid_token_error)
             return ORJSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder(res)
+                status_code=common_invalid_token_error.status_code,
+                content=jsonable_encoder(res),
             )
 
         return await call_next(request)
