@@ -1,7 +1,9 @@
 import abc
 
+from internal.domains.entities import WebhookEventPayload
 
-class AbstractAuthenticationService(abc.ABC):
+
+class AbstractExternalAuthenticationSVC(abc.ABC):
     url: str
     admin_username: str
     admin_password: str
@@ -16,3 +18,8 @@ class AbstractAuthenticationService(abc.ABC):
     @abc.abstractmethod
     async def decode_token(self, token: str) -> dict:
         raise NotImplementedError
+
+    # TODO: implement parse webhook event
+    # @abc.abstractmethod
+    # async def parse_webhook_event(self, event: dict) -> WebhookEventPayload:
+    #     raise NotImplementedError

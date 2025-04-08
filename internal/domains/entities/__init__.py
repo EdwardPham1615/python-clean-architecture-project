@@ -1,4 +1,12 @@
-from .authentication import JWTPayload, RealmAccess, ResourceAccess, ResourceAccessRoles
+from .authentication import (
+    JWTPayload,
+    RealmAccess,
+    ResourceAccess,
+    ResourceAccessRoles,
+    WebhookEventActionByPayload,
+    WebhookEventPayload,
+    WebhookEventResourceUserDetails,
+)
 from .comment import (
     CommentEntity,
     CreateCommentPayload,

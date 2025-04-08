@@ -22,7 +22,15 @@ def init_http_server() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    server_.add_middleware(middleware_class=JWTAuthMiddleware)
+    server_.add_middleware(
+        middleware_class=JWTAuthMiddleware,
+        excluded_paths=[
+            "/redoc",  # Redoc
+            "/docs",  # OpenAPI docs
+            "/openapi.json",  # OpenAPI spec
+            "/v1/authentication/webhook/events-synchronization",  # webhook to integrate with authentication service
+        ],
+    )
 
     @server_.exception_handler(HTTPException)
     async def http_exception_handler(_: Request, exc: HTTPException):

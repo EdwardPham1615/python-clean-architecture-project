@@ -1,9 +1,11 @@
 from dependency_injector import containers, providers
 
 from config import app_config
-from internal.domains.services import CommentSVC, PostSVC, UserSVC
+from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
 from internal.domains.usecases import CommentUC, PostUC, UserUC
-from internal.infrastructures.authentication_service import AuthenticationServiceClient
+from internal.infrastructures.external_authentication_service import (
+    ExternalAuthenticationServiceClient,
+)
 from internal.infrastructures.relational_db import (
     CommentRepo,
     Database,
@@ -20,6 +22,7 @@ class Container(containers.DeclarativeContainer):
             __name__,
             "internal.controllers.http.v1.endpoints.post",
             "internal.controllers.http.v1.endpoints.comment",
+            "internal.controllers.http.v1.endpoints.authentication",
             "internal.app.middlewares",
         ]
     )
@@ -41,9 +44,9 @@ class Container(containers.DeclarativeContainer):
         relational_db.provided.scoped_session, relational_db
     )
 
-    ## Authentication Service
-    authentication_svc = providers.Resource(
-        AuthenticationServiceClient,
+    ## External Authentication Service
+    external_authentication_svc = providers.Resource(
+        ExternalAuthenticationServiceClient,
         url=app_config.authentication_service.url,
         admin_username=app_config.authentication_service.admin_username,
         admin_password=app_config.authentication_service.admin_password,
@@ -93,6 +96,12 @@ class Container(containers.DeclarativeContainer):
         user_uc=user_uc,
         post_uc=post_uc,
         comment_uc=comment_uc,
+    )
+    authentication_svc = providers.Factory(
+        AuthenticationSVC,
+        external_authentication_svc=external_authentication_svc,
+        relational_db_uow=relational_db_uow,
+        user_uc=user_uc,
     )
 
 

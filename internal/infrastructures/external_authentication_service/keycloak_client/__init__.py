@@ -2,12 +2,12 @@ from typing import Optional
 
 from keycloak import KeycloakAdmin, KeycloakOpenID, KeycloakOpenIDConnection
 
-from internal.infrastructures.authentication_service.abstraction import (
-    AbstractAuthenticationService,
+from internal.infrastructures.external_authentication_service.abstraction import (
+    AbstractExternalAuthenticationSVC,
 )
 
 
-class KeycloakClient(AbstractAuthenticationService):
+class KeycloakClient(AbstractExternalAuthenticationSVC):
     def __init__(
         self,
         url: str,

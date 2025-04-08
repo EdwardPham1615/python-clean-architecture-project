@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
+
+from internal.domains.constants import WebhookEventOperation, WebhookEventResource
 
 
 class RealmAccess(BaseModel):
@@ -43,3 +45,30 @@ class JWTPayload(BaseModel):
 
     def get_iat_datetime(self) -> Optional[datetime]:
         return datetime.fromtimestamp(self.iat) if self.iat else None
+
+
+class WebhookEventActionByPayload(BaseModel):
+    id_: str
+    username: str
+    realm_id: str
+    client_id: str
+    ip_address: str
+
+
+class WebhookEventResourceUserDetails(BaseModel):
+    id_: Optional[str] = None
+    username: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    created_at: Optional[datetime] = None
+    is_active: Optional[bool] = None
+
+
+class WebhookEventPayload(BaseModel):
+    realm_name: str
+    operation: WebhookEventOperation
+    action_by: WebhookEventActionByPayload
+    action_at: datetime
+    resource: WebhookEventResource
+    resource_detail: Union[WebhookEventResourceUserDetails]

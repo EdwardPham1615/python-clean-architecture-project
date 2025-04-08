@@ -1,3 +1,4 @@
+from .authentication import DecodeTokenException, GetCertsException
 from .comment import (
     CreateCommentException,
     DeleteCommentException,
