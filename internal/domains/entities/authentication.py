@@ -52,7 +52,7 @@ class WebhookEventActionByPayload(BaseModel):
     username: str
     realm_id: str
     client_id: str
-    ip_address: str
+    ip_address: Optional[str] = None
 
 
 class WebhookEventResourceUserDetails(BaseModel):

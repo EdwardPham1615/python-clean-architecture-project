@@ -20,7 +20,7 @@ router = APIRouter()
 
 @router.post("/webhook/events-synchronization", response_model=DataResponse)
 @inject
-async def sync_user_webhook(
+async def sync_event_webhook(
     ctx_req_: Request,
     svc: Annotated[AuthenticationSVC, Depends(Provide[Container.authentication_svc])],
 ):

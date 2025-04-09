@@ -13,7 +13,7 @@ settings = Dynaconf(
 
 
 class AuthenticationServiceConfig(BaseModel):
-    vendor: Optional[str] = Field("keycloak_client", alias="VENDOR")
+    vendor: Optional[str] = Field("keycloak", alias="VENDOR")
     url: str = Field(..., alias="URL")
     admin_username: str = Field(..., alias="ADMIN_USERNAME")
     admin_password: str = Field(..., alias="ADMIN_PASSWORD")

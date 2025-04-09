@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class ParseDateTimeException(Exception):
@@ -26,3 +26,9 @@ def from_dt_to_str(dt: datetime, format_: str) -> str:
 
 def from_dt_to_int_timestamp(dt: datetime) -> int:
     return int(dt.timestamp())
+
+
+def from_timestamp_to_dt(timestamp: int, unit: int, with_tz: bool) -> datetime:
+    if with_tz:
+        return datetime.fromtimestamp(timestamp / unit, tz=timezone.utc)
+    return datetime.fromtimestamp(timestamp / unit)

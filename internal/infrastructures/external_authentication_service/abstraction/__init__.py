@@ -1,4 +1,5 @@
 import abc
+from typing import Optional, Tuple
 
 from internal.domains.entities import WebhookEventPayload
 
@@ -19,7 +20,8 @@ class AbstractExternalAuthenticationSVC(abc.ABC):
     async def decode_token(self, token: str) -> dict:
         raise NotImplementedError
 
-    # TODO: implement parse webhook event
-    # @abc.abstractmethod
-    # async def parse_webhook_event(self, event: dict) -> WebhookEventPayload:
-    #     raise NotImplementedError
+    @abc.abstractmethod
+    async def parse_webhook_event(
+        self, event: dict
+    ) -> Tuple[Optional[WebhookEventPayload], Optional[Exception]]:
+        raise NotImplementedError
