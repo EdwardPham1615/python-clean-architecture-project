@@ -82,7 +82,8 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
         elif raw_operation == "DELETE":
             operation = WebhookEventOperation.DELETE
         else:
-            return None, Exception(f"Unsupported operationType: {raw_operation}")
+            logger.debug(f"Unsupported operationType: {raw_operation}")
+            return None, None
 
         action_at = datetime.now(tz=UTC)
         raw_time = event.get("time", 0)
