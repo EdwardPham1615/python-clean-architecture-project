@@ -2,4 +2,4 @@
 LOG_LEVEL = "INFO"
 UVICORN_WORKERS = 1
 RELATIONAL_DB = '@json { "VENDOR": "postgres", "URL": "postgresql+asyncpg://cleanarc:cleanarc!123#@localhost:5432/cleanarc", "ENABLE_AUTO_MIGRATE": true}'
-AUTHENTICATION_SERVICE = '@json { "VENDOR": "keycloak", "URL": "http://localhost:8081", "ADMIN_USERNAME": "", "ADMIN_PASSWORD": "", "REALM": "clean-arc", "CLIENT_ID": "python-clean-arc-be", "CLIENT_SECRET": ""}'
+AUTHENTICATION_SERVICE = '@json { "VENDOR": "keycloak", "URL": "http://localhost:8081", "ADMIN_USERNAME": "", "ADMIN_PASSWORD": "", "REALM": "clean-arc", "CLIENT_ID": "python-clean-arc-be", "CLIENT_SECRET": "", "WEBHOOK_SECRET": ""}'

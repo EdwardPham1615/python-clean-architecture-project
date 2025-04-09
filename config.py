@@ -20,6 +20,7 @@ class AuthenticationServiceConfig(BaseModel):
     realm: str = Field(..., alias="REALM")
     client_id: str = Field(..., alias="CLIENT_ID")
     client_secret: str = Field(..., alias="CLIENT_SECRET")
+    webhook_secret: str = Field(..., alias="WEBHOOK_SECRET")
 
 
 class RelationalDBConfig(BaseModel):
@@ -59,6 +60,7 @@ try:
             REALM=settings.AUTHENTICATION_SERVICE.REALM,
             CLIENT_ID=settings.AUTHENTICATION_SERVICE.CLIENT_ID,
             CLIENT_SECRET=settings.AUTHENTICATION_SERVICE.CLIENT_SECRET,
+            WEBHOOK_SECRET=settings.AUTHENTICATION_SERVICE.WEBHOOK_SECRET,
         ),
     )
     logger.info("Configuration loaded successfully!")
