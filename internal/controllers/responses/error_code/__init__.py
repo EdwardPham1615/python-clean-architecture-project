@@ -1,4 +1,4 @@
-from .authentication import sync_webhook_event_fail
+from .authentication import sync_webhook_event_fail, invalid_webhook_secret_error
 from .comment import (
     create_comment_fail,
     delete_comment_fail,
