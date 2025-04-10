@@ -24,11 +24,63 @@ services:
       options:
         max-file: "10"
         max-size: 20m
+  init-clean-arc-authentication-service-db:
+    image: postgres:15-alpine
+    networks:
+      - clean-arc-network
+    depends_on:
+      - clean-arc-relational-db
+    environment:
+      PGPASSWORD: "cleanarc!123#"
+    entrypoint: [ "sh", "-c" ]
+    command: >
+      "
+      until pg_isready -h clean-arc-relational-db -p 5432 -U cleanarc; do
+        echo 'Waiting for DB...';
+        sleep 2;
+      done;
+      psql -h clean-arc-relational-db -U cleanarc -tc \"SELECT 1 FROM pg_database WHERE datname = 'keycloak'\" |
+        grep -q 1 || psql -h clean-arc-relational-db -U cleanarc -c 'CREATE DATABASE keycloak;';
+      "
+  clean-arc-authentication-service:
+    image: quay.io/phasetwo/phasetwo-keycloak:26.1.4
+    container_name: clean-arc-authentication-service
+    ports:
+      - "8081:8080"
+    networks:
+      - clean-arc-network
+    depends_on:
+      - clean-arc-relational-db
+      - init-clean-arc-authentication-service-db
+    environment:
+      PROXY_ADDRESS_FORWARDING: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+      KC_DB: "postgres"
+      KC_DB_URL_HOST: "clean-arc-relational-db"
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: "keycloak"
+      KC_DB_SCHEMA: "public"
+      KC_DB_USERNAME: "cleanarc"
+      KC_DB_PASSWORD: "cleanarc!123#"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY: "edge"
+      KC_LOG_LEVEL: INFO
+    command:
+      [ "start-dev", "--spi-events-listener-ext-event-webhook-enabled=true" ]
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
   clean-arc-be:
     image: python-clean-architecture-be:latest
     container_name: clean-arc-be
     depends_on:
       - clean-arc-relational-db
+      - clean-arc-authentication-service
     ports:
       - "8080:8080"
       - "5000:5000"

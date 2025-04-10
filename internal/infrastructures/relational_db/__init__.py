@@ -2,10 +2,8 @@ from enum import Enum
 
 from config import app_config
 
-from .abstraction import AbstractCommentRepo, AbstractPostRepo
+from .abstraction import AbstractCommentRepo, AbstractPostRepo, AbstractUserRepo
 from .base import Base
-
-# from .patterns import RelationalDBContainer
 from .postgres import PostgresDatabase
 
 
@@ -24,6 +22,7 @@ if DATABASE_VENDOR == SupportedDatabaseVendor.POSTGRES.value:
     from internal.infrastructures.relational_db.postgres.repositories import (
         CommentRepo,
         PostRepo,
+        UserRepo,
     )
 else:
     raise RuntimeError(f"Invalid database vendor {DATABASE_VENDOR}")

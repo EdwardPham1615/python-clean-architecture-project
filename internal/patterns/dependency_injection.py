@@ -1,10 +1,17 @@
 from dependency_injector import containers, providers
 
 from config import app_config
-from internal.domains.services import CommentSVC, PostSVC
-from internal.domains.usecases import CommentUC, PostUC
-from internal.infrastructures.authentication_service import AuthenticationServiceClient
-from internal.infrastructures.relational_db import CommentRepo, Database, PostRepo
+from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
+from internal.domains.usecases import CommentUC, PostUC, UserUC
+from internal.infrastructures.external_authentication_service import (
+    ExternalAuthenticationServiceClient,
+)
+from internal.infrastructures.relational_db import (
+    CommentRepo,
+    Database,
+    PostRepo,
+    UserRepo,
+)
 from internal.infrastructures.relational_db.base import Base
 from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitOfWork
 
@@ -15,6 +22,7 @@ class Container(containers.DeclarativeContainer):
             __name__,
             "internal.controllers.http.v1.endpoints.post",
             "internal.controllers.http.v1.endpoints.comment",
+            "internal.controllers.http.v1.endpoints.authentication",
             "internal.app.middlewares",
         ]
     )
@@ -36,20 +44,22 @@ class Container(containers.DeclarativeContainer):
         relational_db.provided.scoped_session, relational_db
     )
 
-    ## Authentication Service
-    authentication_svc = providers.Resource(
-        AuthenticationServiceClient,
+    ## External Authentication Service
+    external_authentication_svc = providers.Resource(
+        ExternalAuthenticationServiceClient,
         url=app_config.authentication_service.url,
         admin_username=app_config.authentication_service.admin_username,
         admin_password=app_config.authentication_service.admin_password,
         realm=app_config.authentication_service.realm,
         client_id=app_config.authentication_service.client_id,
         client_secret=app_config.authentication_service.client_secret,
+        webhook_secret=app_config.authentication_service.webhook_secret,
     )
 
     ### Repositories
     post_repo = providers.Factory(PostRepo, session=relational_db_session)
     comment_repo = providers.Factory(CommentRepo, session=relational_db_session)
+    user_repo = providers.Factory(UserRepo, session=relational_db_session)
 
     ### Unit of Work
     relational_db_uow = providers.Factory(
@@ -58,12 +68,14 @@ class Container(containers.DeclarativeContainer):
         scoped_session=relational_db_scoped_session,
         post_repo=post_repo,
         comment_repo=comment_repo,
+        user_repo=user_repo,
     )
 
     # Domains
     ## UseCases
     post_uc = providers.Factory(PostUC, relational_db_post_repo=post_repo)
     comment_uc = providers.Factory(CommentUC, relational_db_comment_repo=comment_repo)
+    user_uc = providers.Factory(UserUC, relational_db_user_repo=user_repo)
 
     ## Services
     post_svc = providers.Factory(
@@ -71,9 +83,26 @@ class Container(containers.DeclarativeContainer):
         relational_db_uow=relational_db_uow,
         post_uc=post_uc,
         comment_uc=comment_uc,
+        user_uc=user_uc,
     )
     comment_svc = providers.Factory(
-        CommentSVC, relational_db_uow=relational_db_uow, comment_uc=comment_uc
+        CommentSVC,
+        relational_db_uow=relational_db_uow,
+        comment_uc=comment_uc,
+        user_uc=user_uc,
+    )
+    user_svc = providers.Factory(
+        UserSVC,
+        relational_db_uow=relational_db_uow,
+        user_uc=user_uc,
+        post_uc=post_uc,
+        comment_uc=comment_uc,
+    )
+    authentication_svc = providers.Factory(
+        AuthenticationSVC,
+        external_authentication_svc=external_authentication_svc,
+        relational_db_uow=relational_db_uow,
+        user_uc=user_uc,
     )
 
 

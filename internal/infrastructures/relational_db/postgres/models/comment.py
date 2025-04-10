@@ -18,6 +18,7 @@ class Comment(Base):
 
     # fk
     post_id = Column("post_id", UUID, nullable=False)
+    owner_id = Column("owner_id", UUID, nullable=False)
 
 
 class CommentModelMapper:

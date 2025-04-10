@@ -7,6 +7,7 @@ from pydantic import UUID4
 
 from internal.domains.entities import (
     CreatePostPayload,
+    DeletePostPayload,
     GetMultiPostsFilter,
     PostEntity,
     UpdatePostPayload,
@@ -43,6 +44,7 @@ class PostUC(AbstractPostUC):
                 id_=uuid.uuid4(),
                 text_content=payload.text_content,
                 created_at=datetime.now(tz=UTC),
+                owner_id=UUID4(payload.owner_id),
             )
             if payload.id_:
                 entity.id_ = UUID4(payload.id_)
@@ -96,11 +98,15 @@ class PostUC(AbstractPostUC):
             if not existed_post:
                 raise Exception(f"Not found post: {payload.id_}")
 
+            if existed_post.owner_id != payload.owner_id:
+                raise Exception(f"{payload.owner_id} is not owner of this post")
+
             entity = PostEntity(
                 id_=UUID4(payload.id_),
                 text_content=existed_post.text_content,
                 created_at=existed_post.created_at,
                 updated_at=datetime.now(tz=UTC),
+                owner_id=existed_post.owner_id,
             )
             if payload.text_content:
                 entity.text_content = payload.text_content
@@ -114,17 +120,22 @@ class PostUC(AbstractPostUC):
             logger.error(exc)
             raise UpdatePostException(exc)
 
-    async def delete(self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None):
+    async def delete(
+        self, payload: DeletePostPayload, uow: Optional[RelationalDBUnitOfWork] = None
+    ):
         try:
             session = self._relational_db_post_repo
             if uow:
                 session = uow.post_repo
 
-            existed_post = await session.get_by_id(id_=UUID4(id_))
+            existed_post = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_post:
-                raise Exception(f"Not found post: {id_}")
+                raise Exception(f"Not found post: {payload.id_}")
 
-            await session.delete(id_=UUID4(id_))
+            if existed_post.owner_id != payload.owner_id:
+                raise Exception(f"{payload.owner_id} is not owner of this post")
+
+            await session.delete(id_=UUID4(payload.id_))
         except Exception as exc:
             logger.error(exc)
             raise DeletePostException(exc)

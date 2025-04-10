@@ -4,10 +4,11 @@ from typing import Any, Optional, Type
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 
-from internal.infrastructures.relational_db import CommentRepo, PostRepo
+from internal.infrastructures.relational_db import CommentRepo, PostRepo, UserRepo
 from internal.infrastructures.relational_db.abstraction import (
     AbstractCommentRepo,
     AbstractPostRepo,
+    AbstractUserRepo,
 )
 
 
@@ -16,14 +17,17 @@ class AbstractUnitOfWork(abc.ABC):
 
     post_repo: AbstractPostRepo
     comment_repo: AbstractCommentRepo
+    user_repo: AbstractUserRepo
 
     def __init__(
         self,
         post_repo: AbstractPostRepo,
         comment_repo: AbstractCommentRepo,
+        user_repo: AbstractUserRepo,
     ):
         self.post_repo = post_repo
         self.comment_repo = comment_repo
+        self.user_repo = user_repo
 
     @abstractmethod
     async def __aenter__(self) -> "AbstractUnitOfWork":
@@ -43,10 +47,12 @@ class AsyncSQLAlchemyUnitOfWork(AbstractUnitOfWork):
         scoped_session: async_scoped_session[AsyncSession],
         post_repo: PostRepo,
         comment_repo: CommentRepo,
+        user_repo: UserRepo,
     ):
         super().__init__(
             post_repo=post_repo,
             comment_repo=comment_repo,
+            user_repo=user_repo,
         )
         self._session = session
         self._scoped_session = scoped_session

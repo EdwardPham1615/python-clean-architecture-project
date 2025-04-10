@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple
 from internal.domains.entities import (
     CommentEntity,
     CreateCommentPayload,
+    DeleteCommentPayload,
     GetMultiCommentsFilter,
     UpdateCommentPayload,
 )
@@ -49,5 +50,9 @@ class AbstractCommentUC(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def delete(self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None):
+    async def delete(
+        self,
+        payload: DeleteCommentPayload,
+        uow: Optional[RelationalDBUnitOfWork] = None,
+    ):
         raise NotImplementedError

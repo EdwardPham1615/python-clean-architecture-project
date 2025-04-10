@@ -1,0 +1,9 @@
+###
+
+# curl --location --request GET 'http://<keycloak-host>:<keycloak-port>/realms/<realm-name>/webhooks'
+#--header 'Authorization: Bearer <keycloak-admin-access-token>'
+GET http://<keycloak-host>:<keycloak-port>/realms/<realm-name>/webhooks
+Authorization: Bearer <keycloak-admin-access-token>
+
+###
+

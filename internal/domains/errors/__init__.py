@@ -1,3 +1,8 @@
+from .authentication import (
+    DecodeTokenException,
+    GetCertsException,
+    UnauthorizedWebhookException,
+)
 from .comment import (
     CreateCommentException,
     DeleteCommentException,
@@ -9,4 +14,10 @@ from .post import (
     DeletePostException,
     GetPostException,
     UpdatePostException,
+)
+from .user import (
+    CreateUserException,
+    DeleteUserException,
+    GetUserException,
+    UpdateUserException,
 )

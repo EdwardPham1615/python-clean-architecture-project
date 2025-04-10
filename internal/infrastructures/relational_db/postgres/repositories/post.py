@@ -25,7 +25,7 @@ class PostRepo(AbstractPostRepo):
         if uow_session:
             session_ = uow_session
 
-        obj_in_data = entity.to_dict()
+        obj_in_data = entity.to_dict(exclude_none=True)
         stmt = insert(Post).values(**obj_in_data).returning(Post.id_)
         result = await session_.execute(stmt)
         new_id = result.scalar()
@@ -96,7 +96,7 @@ class PostRepo(AbstractPostRepo):
         if uow_session:
             session_ = uow_session
 
-        obj_in_data = entity.to_dict()
+        obj_in_data = entity.to_dict(exclude_none=True)
         stmt = update(Post).where(Post.id_ == entity.id_).values(**obj_in_data)
         await session_.execute(stmt)
         return

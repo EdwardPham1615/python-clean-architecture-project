@@ -8,6 +8,7 @@ from pydantic import UUID4
 from internal.domains.entities import (
     CommentEntity,
     CreateCommentPayload,
+    DeleteCommentPayload,
     GetMultiCommentsFilter,
     UpdateCommentPayload,
 )
@@ -46,6 +47,7 @@ class CommentUC(AbstractCommentUC):
                 text_content=payload.text_content,
                 created_at=datetime.now(tz=UTC),
                 post_id=UUID4(payload.post_id),
+                owner_id=UUID4(payload.owner_id),
             )
             if payload.id_:
                 entity.id_ = UUID4(payload.id_)
@@ -103,12 +105,16 @@ class CommentUC(AbstractCommentUC):
             if not existed_comment:
                 raise Exception(f"Not found comment: {payload.id_}")
 
+            if existed_comment.owner_id != payload.owner_id:
+                raise Exception(f"{payload.owner_id} is not owner of this comment")
+
             entity = CommentEntity(
                 id_=UUID4(payload.id_),
                 text_content=existed_comment.text_content,
                 created_at=existed_comment.created_at,
                 updated_at=datetime.now(tz=UTC),
                 post_id=existed_comment.post_id,
+                owner_id=existed_comment.owner_id,
             )
             if payload.text_content:
                 entity.text_content = payload.text_content
@@ -122,17 +128,24 @@ class CommentUC(AbstractCommentUC):
             logger.error(exc)
             raise UpdateCommentException(exc)
 
-    async def delete(self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None):
+    async def delete(
+        self,
+        payload: DeleteCommentPayload,
+        uow: Optional[RelationalDBUnitOfWork] = None,
+    ):
         try:
             session = self._relational_db_comment_repo
             if uow:
                 session = uow.comment_repo
 
-            existed_comment = await session.get_by_id(id_=UUID4(id_))
+            existed_comment = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_comment:
-                raise Exception(f"Not found comment: {id_}")
+                raise Exception(f"Not found comment: {payload.id_}")
 
-            await session.delete(id_=UUID4(id_))
+            if existed_comment.owner_id != payload.owner_id:
+                raise Exception(f"{payload.owner_id} is not owner of this comment")
+
+            await session.delete(id_=UUID4(payload.id_))
         except Exception as exc:
             logger.error(exc)
             raise DeleteCommentException(exc)

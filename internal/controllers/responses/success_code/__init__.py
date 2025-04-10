@@ -1,3 +1,4 @@
+from .authentication import sync_webhook_event_success
 from .comment import (
     create_comment_success,
     delete_comment_success,

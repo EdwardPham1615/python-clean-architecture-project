@@ -16,6 +16,9 @@ class Post(Base):
     )
     updated_at = Column("updated_at", TIMESTAMP(timezone=True), onupdate=func.now())
 
+    # fk
+    owner_id = Column("owner_id", UUID, nullable=False)
+
 
 class PostModelMapper:
     @staticmethod
