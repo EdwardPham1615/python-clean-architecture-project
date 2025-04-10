@@ -1,6 +1,9 @@
+import hashlib
+import hmac
 from datetime import UTC, datetime
 from typing import Optional, Tuple, Union
 
+from fastapi import Request
 from keycloak import KeycloakAdmin, KeycloakOpenID, KeycloakOpenIDConnection
 from loguru import logger
 
@@ -26,6 +29,7 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
         realm: str,
         client_id: str,
         client_secret: str,
+        webhook_secret: str,
     ):
         self._url = url
         self._admin_username = admin_username
@@ -33,6 +37,7 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
         self._realm = realm
         self._client_id = client_id
         self._client_secret = client_secret
+        self._webhook_secret = webhook_secret
         self._certs: Optional[dict] = None
 
         self._openid = KeycloakOpenID(
@@ -62,6 +67,21 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
 
     async def decode_token(self, token: str) -> Optional[dict]:
         return await self._openid.a_decode_token(token=token, validate=True)
+
+    async def check_webhook_authentication(self, ctx_req_: Request) -> bool:
+        x_keycloak_signature = ctx_req_.headers.get("X-Keycloak-Signature", None)
+        if not x_keycloak_signature:
+            return False
+
+        raw_body = await ctx_req_.body()
+        # Compute HMAC using the shared secret
+        computed_signature = hmac.new(
+            self._webhook_secret.encode("utf-8"), raw_body, hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(computed_signature, x_keycloak_signature):
+            return False
+
+        return True
 
     async def parse_webhook_event(
         self, event: dict

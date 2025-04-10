@@ -53,6 +53,7 @@ class Container(containers.DeclarativeContainer):
         realm=app_config.authentication_service.realm,
         client_id=app_config.authentication_service.client_id,
         client_secret=app_config.authentication_service.client_secret,
+        webhook_secret=app_config.authentication_service.webhook_secret,
     )
 
     ### Repositories

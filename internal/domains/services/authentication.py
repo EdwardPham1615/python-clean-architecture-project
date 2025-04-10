@@ -1,10 +1,12 @@
 from typing import Optional, Tuple
 
+from fastapi import Request
 from loguru import logger
 
 from internal.domains.constants import WebhookEventOperation, WebhookEventResource
 from internal.domains.entities import CreateUserPayload, WebhookEventPayload
 from internal.domains.entities.user import UpdateUserPayload, UserMetadataPayload
+from internal.domains.errors import UnauthorizedWebhookException
 from internal.domains.services.abstraction import AbstractAuthenticationSVC
 from internal.domains.usecases.abstraction import AbstractUserUC
 from internal.infrastructures.external_authentication_service.abstraction import (
@@ -49,7 +51,16 @@ class AuthenticationSVC(AbstractAuthenticationSVC):
 
         return token_payload, None
 
-    async def handle_webhook_event(self, event: dict) -> Optional[Exception]:
+    async def handle_webhook_event(self, ctx_req_: Request) -> Optional[Exception]:
+        is_authenticated = (
+            await self._external_authentication_svc.check_webhook_authentication(
+                ctx_req_=ctx_req_
+            )
+        )
+        if not is_authenticated:
+            return UnauthorizedWebhookException("Missing or invalid webhook token")
+
+        event = await ctx_req_.json()
         logger.debug(f"Received webhook event: {event}")
 
         event_payload: Optional[WebhookEventPayload] = None

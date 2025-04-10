@@ -1,6 +1,8 @@
 import abc
 from typing import Optional, Tuple
 
+from fastapi import Request
+
 
 class AbstractAuthenticationSVC(abc.ABC):
     @abc.abstractmethod
@@ -14,5 +16,5 @@ class AbstractAuthenticationSVC(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def handle_webhook_event(self, event: dict) -> Optional[Exception]:
+    async def handle_webhook_event(self, ctx_req_: Request) -> Optional[Exception]:
         raise NotImplementedError
