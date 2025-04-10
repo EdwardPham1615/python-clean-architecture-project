@@ -142,7 +142,7 @@ Ensure you have the following installed:
    
    Step 2: Setup webhooks (optional)
    Follow this document https://phasetwo.io/docs/audit-logs/webhooks/
-   And checkout my folder "external_authentication_service_webhook_crud"
+   And checkout my folder "examples/external_authentication_service_webhook_crud"
    ```
 
 5. **Start the Application**
