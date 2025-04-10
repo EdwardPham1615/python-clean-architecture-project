@@ -1,9 +1,0 @@
-###
-
-# curl --location --request DELETE 'http://<keycloak-host>:<keycloak-port>/realms/<realm-name>/webhooks/<webhook-id>' 
-#--header 'Authorization: Bearer <keycloak-admin-access-token>'
-DELETE http://<keycloak-host>:<keycloak-port>/realms/<realm-name>/webhooks/<webhook-id>
-Authorization: Bearer <keycloak-admin-access-token>
-
-###
-
