@@ -96,6 +96,8 @@ Ensure you have the following installed:
 
 - PostgreSQL 15+ (Use your own local PostgreSQL or you can use my docker-compose.dev.yaml)
 
+- Keycloak 26.x (Optional) (Use your own local Keycloak with webhook extension [https://github.com/p2-inc/keycloak-events](...) or you can use my docker-compose.dev.yaml)
+
 - Docker & Docker Compose (Optional)
 
 - make (Optional)
@@ -127,13 +129,29 @@ Ensure you have the following installed:
    alembic revision --autogenerate -m <name_version>
    ```
 
-4. **Start the Application**
+4. **Manage Keycloak and Webhook Config**
+
+   ```sh
+   This section is optional and my repo still working without Keycloak !!!
+   
+   In this repo, i use Phasetwo as an example of authentication service integration (https://phasetwo.io/docs/introduction/), is basically Keycloak with extensions.
+   But you can just use an original Keycloak and then install webhook extension with it (optional).
+   
+   Step 1: Setup your Keycloak using the original documents 
+   https://www.keycloak.org/documentation
+   
+   Step 2: Setup webhooks (optional)
+   Follow this document https://phasetwo.io/docs/audit-logs/webhooks/
+   And checkout my folder "external_authentication_service_webhook_crud"
+   ```
+
+5. **Start the Application**
 
    ```sh
    python main.py
    ```
 
-5. **Alternative run with docker**
+6. **Alternative run with docker**
 
    ```sh
    # if you do not want to start from scratch, just run with docker
@@ -153,7 +171,7 @@ Ensure you have the following installed:
 
    ```
 
-6. **Access the API**
+7. **Access the API**
 
    - Open `http://127.0.0.1:8080/docs` for Swagger UI.
    - Use `http://127.0.0.1:8080/redoc` for Redoc documentation.
