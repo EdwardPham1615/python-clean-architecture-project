@@ -9,9 +9,11 @@ from loguru import logger
 from internal.controllers.responses import DataResponse
 from internal.controllers.responses.error_code import (
     common_internal_error,
+    invalid_webhook_secret_error,
     sync_webhook_event_fail,
 )
 from internal.controllers.responses.success_code import sync_webhook_event_success
+from internal.domains.errors import UnauthorizedWebhookException
 from internal.domains.services import AuthenticationSVC
 from internal.patterns import Container
 
@@ -27,10 +29,12 @@ async def sync_event_webhook(
     # Default res
     res = DataResponse(message=common_internal_error)
     try:
-        event_data = await ctx_req_.json()
-        error_ = await svc.handle_webhook_event(event=event_data)
+        error_ = await svc.handle_webhook_event(ctx_req_=ctx_req_)
         if error_:
-            res = DataResponse(message=sync_webhook_event_fail)
+            if isinstance(error_, UnauthorizedWebhookException):
+                res = DataResponse(message=invalid_webhook_secret_error)
+            else:
+                res = DataResponse(message=sync_webhook_event_fail)
         else:
             res = DataResponse(message=sync_webhook_event_success)
     except Exception as exc:

@@ -1,4 +1,8 @@
-from .authentication import DecodeTokenException, GetCertsException
+from .authentication import (
+    DecodeTokenException,
+    GetCertsException,
+    UnauthorizedWebhookException,
+)
 from .comment import (
     CreateCommentException,
     DeleteCommentException,
