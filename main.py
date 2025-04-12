@@ -19,7 +19,7 @@ async def main_http_server():
     config = uvicorn.Config(
         app="main:http_server_",
         host="0.0.0.0",
-        port=8080,
+        port=app_config.main_http_port,
         log_level=app_config.log_level.lower(),
         workers=app_config.uvicorn_workers,
     )
@@ -34,7 +34,7 @@ async def main_health_check_server():
     config = uvicorn.Config(
         app="main:health_check_server_",
         host="0.0.0.0",
-        port=5000,
+        port=app_config.health_check_http_port,
         log_level=app_config.log_level.lower(),
         workers=app_config.uvicorn_workers,
     )
