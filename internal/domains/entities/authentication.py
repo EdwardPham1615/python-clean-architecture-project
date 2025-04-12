@@ -47,7 +47,7 @@ class JWTPayload(BaseModel):
         return datetime.fromtimestamp(self.iat) if self.iat else None
 
 
-class WebhookEventActionByPayload(BaseModel):
+class WebhookEventActionByEntity(BaseModel):
     id_: str
     username: str
     realm_id: str
@@ -65,10 +65,10 @@ class WebhookEventResourceUserDetails(BaseModel):
     is_active: Optional[bool] = None
 
 
-class WebhookEventPayload(BaseModel):
+class WebhookEventEntity(BaseModel):
     realm_name: str
     operation: WebhookEventOperation
-    action_by: WebhookEventActionByPayload
+    action_by: WebhookEventActionByEntity
     action_at: datetime
     resource: WebhookEventResource
     resource_detail: Union[WebhookEventResourceUserDetails]

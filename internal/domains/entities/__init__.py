@@ -3,8 +3,8 @@ from .authentication import (
     RealmAccess,
     ResourceAccess,
     ResourceAccessRoles,
-    WebhookEventActionByPayload,
-    WebhookEventPayload,
+    WebhookEventActionByEntity,
+    WebhookEventEntity,
     WebhookEventResourceUserDetails,
 )
 from .comment import (
