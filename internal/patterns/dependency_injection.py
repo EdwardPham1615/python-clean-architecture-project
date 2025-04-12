@@ -6,6 +6,9 @@ from internal.domains.usecases import CommentUC, PostUC, UserUC
 from internal.infrastructures.external_authentication_service import (
     ExternalAuthenticationServiceClient,
 )
+from internal.infrastructures.external_rebac_authorization_service import (
+    ExternalReBACAuthorizationServiceClient,
+)
 from internal.infrastructures.relational_db import (
     CommentRepo,
     Database,
@@ -54,6 +57,16 @@ class Container(containers.DeclarativeContainer):
         client_id=app_config.authentication_service.client_id,
         client_secret=app_config.authentication_service.client_secret,
         webhook_secret=app_config.authentication_service.webhook_secret,
+    )
+
+    ## External ReBAC Authorization Service
+    external_rebac_authorization_svc = providers.Resource(
+        ExternalReBACAuthorizationServiceClient,
+        url=app_config.rebac_authorization_service.url,
+        api_token=app_config.rebac_authorization_service.token,
+        store_id=app_config.rebac_authorization_service.store_id,
+        authorization_model_id=app_config.rebac_authorization_service.authorization_model_id,
+        timeout_in_millis=app_config.rebac_authorization_service.timeout_in_millis,
     )
 
     ### Repositories

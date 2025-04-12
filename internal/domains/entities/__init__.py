@@ -7,6 +7,7 @@ from .authentication import (
     WebhookEventPayload,
     WebhookEventResourceUserDetails,
 )
+from .authorization import CreateSinglePermPayload, PermEntity
 from .comment import (
     CommentEntity,
     CreateCommentPayload,

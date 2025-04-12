@@ -12,6 +12,15 @@ settings = Dynaconf(
 )
 
 
+class ReBACAuthorizationServiceConfig(BaseModel):
+    vendor: Optional[str] = Field("openfga", alias="VENDOR")
+    url: str = Field(..., alias="URL")
+    token: str = Field(..., alias="TOKEN")
+    store_id: str = Field(..., alias="STORE_ID")
+    authorization_model_id: str = Field(..., alias="AUTHORIZATION_MODEL_ID")
+    timeout_in_millis: Optional[int] = Field(3000, alias="TIMEOUT_IN_MILLIS")
+
+
 class AuthenticationServiceConfig(BaseModel):
     vendor: Optional[str] = Field("keycloak", alias="VENDOR")
     url: str = Field(..., alias="URL")
@@ -31,6 +40,8 @@ class RelationalDBConfig(BaseModel):
 
 class AppConfig(BaseModel):
     env_for_dynaconf: Optional[str] = Field("development", alias="ENV_FOR_DYNACONF")
+    main_http_port: Optional[int] = Field(8080, alias="MAIN_HTTP_PORT")
+    health_check_http_port: Optional[int] = Field(5000, alias="HEALTH_CHECK_HTTP_PORT")
     log_level: Optional[str] = Field("INFO", alias="LOG_LEVEL")
     uvicorn_workers: Optional[int] = Field(1, alias="UVICORN_WORKERS")
     # Relational DB configs
@@ -39,12 +50,18 @@ class AppConfig(BaseModel):
     authentication_service: AuthenticationServiceConfig = Field(
         ..., alias="AUTHENTICATION_SERVICE"
     )
+    # ReBAC Authorization Service configs
+    rebac_authorization_service: ReBACAuthorizationServiceConfig = Field(
+        ..., alias="REBAC_AUTHORIZATION_SERVICE"
+    )
 
 
 # Load and validate configuration
 try:
     app_config = AppConfig(
         ENV_FOR_DYNACONF=settings.ENV_FOR_DYNACONF,
+        MAIN_HTTP_PORT=settings.MAIN_HTTP_PORT,
+        HEALTH_CHECK_HTTP_PORT=settings.HEALTH_CHECK_HTTP_PORT,
         LOG_LEVEL=settings.LOG_LEVEL,
         UVICORN_WORKERS=settings.UVICORN_WORKERS,
         RELATIONAL_DB=RelationalDBConfig(
@@ -61,6 +78,14 @@ try:
             CLIENT_ID=settings.AUTHENTICATION_SERVICE.CLIENT_ID,
             CLIENT_SECRET=settings.AUTHENTICATION_SERVICE.CLIENT_SECRET,
             WEBHOOK_SECRET=settings.AUTHENTICATION_SERVICE.WEBHOOK_SECRET,
+        ),
+        REBAC_AUTHORIZATION_SERVICE=ReBACAuthorizationServiceConfig(
+            VENDOR=settings.REBAC_AUTHORIZATION_SERVICE.VENDOR,
+            URL=settings.REBAC_AUTHORIZATION_SERVICE.URL,
+            TOKEN=settings.REBAC_AUTHORIZATION_SERVICE.TOKEN,
+            STORE_ID=settings.REBAC_AUTHORIZATION_SERVICE.STORE_ID,
+            AUTHORIZATION_MODEL_ID=settings.REBAC_AUTHORIZATION_SERVICE.AUTHORIZATION_MODEL_ID,
+            TIMEOUT_IN_MILLIS=settings.REBAC_AUTHORIZATION_SERVICE.TIMEOUT_IN_MILLIS,
         ),
     )
     logger.info("Configuration loaded successfully!")
