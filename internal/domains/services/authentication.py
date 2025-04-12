@@ -4,13 +4,19 @@ from fastapi import Request
 from loguru import logger
 
 from internal.domains.constants import WebhookEventOperation, WebhookEventResource
-from internal.domains.entities import CreateUserPayload, WebhookEventPayload
+from internal.domains.entities import CreateUserPayload, WebhookEventEntity
 from internal.domains.entities.user import UpdateUserPayload, UserMetadataPayload
-from internal.domains.errors import UnauthorizedWebhookException
+from internal.domains.errors import (
+    CheckWebhookAuthenticationException,
+    DecodeTokenException,
+    GetCertsException,
+    ParseWebhookEventException,
+    UnauthorizedWebhookException,
+)
 from internal.domains.services.abstraction import AbstractAuthenticationSVC
-from internal.domains.usecases.abstraction import AbstractUserUC
-from internal.infrastructures.external_authentication_service.abstraction import (
-    AbstractExternalAuthenticationSVC,
+from internal.domains.usecases.abstraction import (
+    AbstractAuthenticationUC,
+    AbstractUserUC,
 )
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
@@ -21,18 +27,19 @@ from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_dt_to_str
 class AuthenticationSVC(AbstractAuthenticationSVC):
     def __init__(
         self,
-        external_authentication_svc: AbstractExternalAuthenticationSVC,
         relational_db_uow: RelationalDBUnitOfWork,
+        authentication_uc: AbstractAuthenticationUC,
         user_uc: AbstractUserUC,
     ):
-        self._external_authentication_svc = external_authentication_svc
         self._relational_db_uow = relational_db_uow
+        self._authentication_uc = authentication_uc
         self._user_uc = user_uc
 
     async def get_certs(self) -> Tuple[Optional[dict], Optional[Exception]]:
+        error: Optional[Exception] = None
         try:
-            certs = await self._external_authentication_svc.get_certs()
-        except Exception as exc:
+            certs = await self._authentication_uc.get_certs()
+        except GetCertsException as exc:
             logger.error(exc)
             error = exc
             return None, error
@@ -42,9 +49,10 @@ class AuthenticationSVC(AbstractAuthenticationSVC):
     async def decode_token(
         self, token: str
     ) -> Tuple[Optional[dict], Optional[Exception]]:
+        error: Optional[Exception] = None
         try:
-            token_payload = await self._external_authentication_svc.decode_token(token)
-        except Exception as exc:
+            token_payload = await self._authentication_uc.decode_token(token=token)
+        except DecodeTokenException as exc:
             logger.error(exc)
             error = exc
             return None, error
@@ -52,23 +60,31 @@ class AuthenticationSVC(AbstractAuthenticationSVC):
         return token_payload, None
 
     async def handle_webhook_event(self, ctx_req_: Request) -> Optional[Exception]:
-        is_authenticated = (
-            await self._external_authentication_svc.check_webhook_authentication(
-                ctx_req_=ctx_req_
+        error: Optional[Exception] = None
+        try:
+            is_authenticated = (
+                await self._authentication_uc.check_webhook_authentication(
+                    ctx_req_=ctx_req_
+                )
             )
-        )
-        if not is_authenticated:
-            return UnauthorizedWebhookException("Missing or invalid webhook token")
+            if not is_authenticated:
+                return UnauthorizedWebhookException("Missing or invalid webhook token")
+        except CheckWebhookAuthenticationException as exc:
+            logger.error(exc)
+            error = exc
+            return error
 
         event = await ctx_req_.json()
         logger.debug(f"Received webhook event: {event}")
 
-        event_payload: Optional[WebhookEventPayload] = None
-        (
-            event_payload,
-            error,
-        ) = await self._external_authentication_svc.parse_webhook_event(event=event)
-        if error:
+        event_payload: Optional[WebhookEventEntity] = None
+        try:
+            event_payload = await self._authentication_uc.parse_webhook_event(
+                event=event
+            )
+        except ParseWebhookEventException as exc:
+            logger.error(exc)
+            error = exc
             return error
 
         if event_payload:

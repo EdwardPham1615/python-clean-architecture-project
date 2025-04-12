@@ -2,7 +2,7 @@ from dependency_injector import containers, providers
 
 from config import app_config
 from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
-from internal.domains.usecases import CommentUC, PostUC, UserUC
+from internal.domains.usecases import AuthenticationUC, CommentUC, PostUC, UserUC
 from internal.infrastructures.external_authentication_service import (
     ExternalAuthenticationServiceClient,
 )
@@ -76,6 +76,9 @@ class Container(containers.DeclarativeContainer):
     post_uc = providers.Factory(PostUC, relational_db_post_repo=post_repo)
     comment_uc = providers.Factory(CommentUC, relational_db_comment_repo=comment_repo)
     user_uc = providers.Factory(UserUC, relational_db_user_repo=user_repo)
+    authentication_uc = providers.Factory(
+        AuthenticationUC, external_authentication_svc=external_authentication_svc
+    )
 
     ## Services
     post_svc = providers.Factory(
@@ -100,8 +103,8 @@ class Container(containers.DeclarativeContainer):
     )
     authentication_svc = providers.Factory(
         AuthenticationSVC,
-        external_authentication_svc=external_authentication_svc,
         relational_db_uow=relational_db_uow,
+        authentication_uc=authentication_uc,
         user_uc=user_uc,
     )
 

@@ -1,6 +1,8 @@
 from .authentication import (
+    CheckWebhookAuthenticationException,
     DecodeTokenException,
     GetCertsException,
+    ParseWebhookEventException,
     UnauthorizedWebhookException,
 )
 from .comment import (

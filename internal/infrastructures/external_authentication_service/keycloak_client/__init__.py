@@ -9,8 +9,8 @@ from loguru import logger
 
 from internal.domains.constants import WebhookEventOperation, WebhookEventResource
 from internal.domains.entities import (
-    WebhookEventActionByPayload,
-    WebhookEventPayload,
+    WebhookEventActionByEntity,
+    WebhookEventEntity,
     WebhookEventResourceUserDetails,
 )
 from internal.infrastructures.external_authentication_service.abstraction import (
@@ -83,16 +83,14 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
 
         return True
 
-    async def parse_webhook_event(
-        self, event: dict
-    ) -> Tuple[Optional[WebhookEventPayload], Optional[Exception]]:
+    async def parse_webhook_event(self, event: dict) -> WebhookEventEntity:
         realm_name = event.get("realmName", "")
         if realm_name == "":
-            return None, Exception("Not found realmName")
+            raise Exception("Not found realmName")
 
         raw_operation = event.get("operationType", None)
         if not raw_operation:
-            return None, Exception("Not found operationType")
+            raise Exception("Not found operationType")
 
         operation: WebhookEventOperation
         if raw_operation == "CREATE":
@@ -103,7 +101,7 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
             operation = WebhookEventOperation.DELETE
         else:
             logger.debug(f"Unsupported operationType: {raw_operation}")
-            return None, None
+            return None
 
         action_at = datetime.now(tz=UTC)
         raw_time = event.get("time", 0)
@@ -116,29 +114,25 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
 
         auth_details = event.get("authDetails", {})
         if auth_details == {}:
-            return None, Exception("Not found authDetails")
+            raise Exception("Not found authDetails")
         action_by_user_id = auth_details.get("userId", "")
         if action_by_user_id == "":
-            return None, Exception("Not found userId")
+            raise Exception("Not found userId")
         action_by_username = auth_details.get("username", "")
         if action_by_username == "":
-            return None, Exception("Not found username")
+            raise Exception("Not found username")
         action_by_realm_id = auth_details.get("realmId", "")
         if action_by_realm_id == "":
-            return None, Exception("Not found realmId")
+            raise Exception("Not found realmId")
         action_by_client_id = auth_details.get("clientId", "")
         if action_by_client_id == "":
-            return None, Exception("Not found clientId")
+            raise Exception("Not found clientId")
         action_by_ip_address = auth_details.get("ipAddress", None)
 
         representation = event.get("representation", "")
         json_representation = {}
         if representation != "":
-            try:
-                json_representation = from_str_to_dict(json_str=representation)
-            except Exception as exc:
-                logger.error(exc)
-                return None, Exception(exc)
+            json_representation = from_str_to_dict(json_str=representation)
 
         raw_details = event.get("details", {})
 
@@ -146,7 +140,7 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
         resource_detail: Optional[Union[WebhookEventResourceUserDetails]] = None
         resource_type = event.get("resourceType", "")
         if resource_type == "":
-            return None, Exception("Not found resourceType")
+            raise Exception("Not found resourceType")
         if resource_type == "USER":
             resource = WebhookEventResource.USER
             resource_detail = WebhookEventResourceUserDetails()
@@ -168,15 +162,15 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
                 )
             resource_detail.is_active = json_representation.get("enabled", None)
         else:
-            return None, Exception(f"Unsupported resourceType: {resource_type}")
+            raise Exception(f"Unsupported resourceType: {resource_type}")
 
         if not resource_detail:
-            return None, Exception("Cannot parse resource_detail")
+            raise Exception("Cannot parse resource_detail")
 
-        event_payload = WebhookEventPayload(
+        event_payload = WebhookEventEntity(
             realm_name=realm_name,
             operation=operation,
-            action_by=WebhookEventActionByPayload(
+            action_by=WebhookEventActionByEntity(
                 id_=action_by_user_id,
                 username=action_by_username,
                 realm_id=action_by_realm_id,
@@ -187,4 +181,4 @@ class KeycloakClient(AbstractExternalAuthenticationSVC):
             resource=resource,
             resource_detail=resource_detail,
         )
-        return event_payload, None
+        return event_payload
