@@ -5,6 +5,8 @@ from loguru import logger
 from internal.domains.entities import (
     CommentEntity,
     CreateUserPayload,
+    DeleteCommentPayload,
+    DeletePostPayload,
     GetMultiCommentsFilter,
     GetMultiPostsFilter,
     PostEntity,
@@ -113,7 +115,13 @@ class UserSVC(AbstractUserSVC):
             # delete one by one comment
             for comment in comments:
                 try:
-                    await self._comment_uc.delete(id_=str(comment.id_), uow=session)
+                    delete_comment_payload = DeleteCommentPayload(
+                        id_=str(comment.id_),
+                        owner_id=id_,
+                    )
+                    await self._comment_uc.delete(
+                        payload=delete_comment_payload, uow=session
+                    )
                 except DeleteCommentException as exc:
                     logger.error(exc)
                     error = exc
@@ -137,7 +145,11 @@ class UserSVC(AbstractUserSVC):
             # delete one by one post
             for post in posts:
                 try:
-                    await self._post_uc.delete(id_=str(post.id_), uow=session)
+                    delete_post_payload = DeletePostPayload(
+                        id_=str(post.id_),
+                        owner_id=id_,
+                    )
+                    await self._post_uc.delete(payload=delete_post_payload, uow=session)
                 except DeletePostException as exc:
                     logger.error(exc)
                     error = exc
