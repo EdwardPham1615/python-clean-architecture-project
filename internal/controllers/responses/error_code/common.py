@@ -27,3 +27,8 @@ common_invalid_token_error = MessageResponse(
     msg_name="Invalid token",
     status_code=status.HTTP_401_UNAUTHORIZED,
 )
+common_no_permission_error = MessageResponse(
+    msg_code="E006",
+    msg_name="No permission",
+    status_code=status.HTTP_401_UNAUTHORIZED,
+)

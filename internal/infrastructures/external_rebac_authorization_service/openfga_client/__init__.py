@@ -47,109 +47,95 @@ class OpenFGAClient(AbstractExternalReBACAuthorizationSVC):
             )
         )
 
-    async def create_perms(
-        self, entities: List[PermEntity]
-    ) -> Tuple[Optional[Any], Optional[Exception]]:
-        error: Optional[Exception] = None
-        try:
-            async with self._client as fga_client:
-                writes = [
-                    ClientTuple(
-                        user=entity.target_obj,
-                        relation=entity.relation,
-                        object=entity.request_obj,
-                    )
-                    for entity in entities
-                ]
-                body = ClientWriteRequest(writes=writes)
-                api_response: ClientWriteResponse = await fga_client.write(
-                    body=body,
-                    options={
-                        "authorization_model_id": self._authorization_model_id,
-                    },
-                )
-                await fga_client.close()
-                return api_response, None
-        except Exception as exc:
-            error = exc
-            return None, error
+    async def create_perms(self, entities: List[PermEntity]) -> List[dict]:
+        results = []
+        writes = [
+            ClientTuple(
+                user=entity.target_obj,
+                relation=entity.relation,
+                object=entity.request_obj,
+            )
+            for entity in entities
+        ]
+        body = ClientWriteRequest(writes=writes)
+        api_response: ClientWriteResponse = await self._client.write(
+            body=body,
+            options={
+                "authorization_model_id": self._authorization_model_id,
+            },
+        )
+        for res in api_response.writes:
+            results.append(
+                {
+                    "success": res.success,
+                    "error": res.error,
+                }
+            )
 
-    async def check_single_perm(
-        self, entity: PermEntity
-    ) -> Tuple[Optional[bool], Optional[Exception]]:
-        error: Optional[Exception] = None
-        try:
-            async with self._client as fga_client:
-                body = ClientCheckRequest(
-                    user=entity.target_obj,
-                    relation=entity.relation,
-                    object=entity.request_obj,
-                )
-                response = await fga_client.check(
-                    body=body,
-                    options={
-                        "authorization_model_id": self._authorization_model_id,
-                    },
-                )
-                return response.allowed, None
-        except Exception as exc:
-            error = exc
-            return None, error
+        return results
 
-    async def check_perms(
-        self, entities: List[PermEntity]
-    ) -> Tuple[Optional[bool], Optional[Exception]]:
-        error: Optional[Exception] = None
-        try:
-            async with self._client as fga_client:
-                checks = [
-                    ClientBatchCheckItem(
-                        user=entity.target_obj,
-                        relation=entity.relation,
-                        object=entity.request_obj,
-                    )
-                    for entity in entities
-                ]
-                response = await fga_client.batch_check(
-                    body=ClientBatchCheckRequest(checks=checks),
-                    options={
-                        "authorization_model_id": self._authorization_model_id,
-                    },
-                )
-                results = response.result
-                for result in results:
-                    allowed = result["allowed"]
-                    if allowed is False:
-                        return False, None
+    async def check_single_perm(self, entity: PermEntity) -> bool:
+        body = ClientCheckRequest(
+            user=entity.target_obj,
+            relation=entity.relation,
+            object=entity.request_obj,
+        )
+        response = await self._client.check(
+            body=body,
+            options={
+                "authorization_model_id": self._authorization_model_id,
+            },
+        )
+        return response.allowed
 
-                return True, None
-        except Exception as exc:
-            error = exc
-            return None, error
+    async def check_perms(self, entities: List[PermEntity]) -> bool:
+        checks = [
+            ClientBatchCheckItem(
+                user=entity.target_obj,
+                relation=entity.relation,
+                object=entity.request_obj,
+            )
+            for entity in entities
+        ]
+        response = await self._client.batch_check(
+            body=ClientBatchCheckRequest(checks=checks),
+            options={
+                "authorization_model_id": self._authorization_model_id,
+            },
+        )
+        results = response.result
+        for result in results:
+            allowed = result["allowed"]
+            if allowed is False:
+                return False
 
-    async def delete_perms(
-        self, entities: List[PermEntity]
-    ) -> Tuple[Optional[Any], Optional[Exception]]:
-        error: Optional[Exception] = None
-        try:
-            async with self._client as fga_client:
-                deletes = [
-                    ClientTuple(
-                        user=entity.target_obj,
-                        relation=entity.relation,
-                        object=entity.request_obj,
-                    )
-                    for entity in entities
-                ]
-                body = ClientWriteRequest(deletes=deletes)
-                api_response: ClientWriteResponse = await fga_client.write(
-                    body=body,
-                    options={
-                        "authorization_model_id": self._authorization_model_id,
-                    },
-                )
-                await fga_client.close()
-                return api_response, None
-        except Exception as exc:
-            error = exc
-            return None, error
+        return True
+
+    async def delete_perms(self, entities: List[PermEntity]) -> List[dict]:
+        results = []
+        deletes = [
+            ClientTuple(
+                user=entity.target_obj,
+                relation=entity.relation,
+                object=entity.request_obj,
+            )
+            for entity in entities
+        ]
+        body = ClientWriteRequest(deletes=deletes)
+        api_response: ClientWriteResponse = await self._client.write(
+            body=body,
+            options={
+                "authorization_model_id": self._authorization_model_id,
+            },
+        )
+        for res in api_response.deletes:
+            results.append(
+                {
+                    "success": res.success,
+                    "error": str(res.error),
+                }
+            )
+        return results
+
+    async def close(self):
+        await self._client.close()

@@ -32,10 +32,3 @@ class CreateSinglePermPayload(BaseModel):
                 raise ValidationError(
                     "request_obj must follow pattern: <object_type:id>"
                 )
-
-    def to_entity(self) -> PermEntity:
-        return PermEntity(
-            target_obj=self.target_obj,
-            relation=self.relation.value,
-            request_obj=self.request_obj,
-        )
