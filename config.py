@@ -74,6 +74,7 @@ class AuthenticationServiceConfig(BaseModel):
 class RelationalDBConfig(BaseModel):
     vendor: Optional[str] = Field("postgres", alias="VENDOR")
     url: str = Field(..., alias="URL")
+    enable_log: bool = Field(..., alias="ENABLE_LOG")
     enable_auto_migrate: bool = Field(..., alias="ENABLE_AUTO_MIGRATE")
 
 
@@ -106,6 +107,7 @@ try:
         RELATIONAL_DB=RelationalDBConfig(
             VENDOR=settings.RELATIONAL_DB.VENDOR,
             URL=settings.RELATIONAL_DB.URL,
+            ENABLE_LOG=settings.RELATIONAL_DB.ENABLE_LOG,
             ENABLE_AUTO_MIGRATE=settings.RELATIONAL_DB.ENABLE_AUTO_MIGRATE,
         ),
         AUTHENTICATION_SERVICE=AuthenticationServiceConfig(

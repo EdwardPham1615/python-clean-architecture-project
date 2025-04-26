@@ -41,6 +41,7 @@ class Container(containers.DeclarativeContainer):
     relational_db = providers.Resource(
         Database,
         db_url=app_config.relational_db.url,
+        enable_log=app_config.relational_db.enable_log,
         enable_migrations=app_config.relational_db.enable_auto_migrate,
     )
 
