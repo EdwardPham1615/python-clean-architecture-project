@@ -5,6 +5,12 @@ from .authentication import (
     ParseWebhookEventException,
     UnauthorizedWebhookException,
 )
+from .authorization import (
+    CheckPermException,
+    CreatePermException,
+    DeletePermException,
+    UnauthorizeException,
+)
 from .comment import (
     CreateCommentException,
     DeleteCommentException,

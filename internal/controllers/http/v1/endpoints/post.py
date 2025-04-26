@@ -12,6 +12,7 @@ from internal.controllers.http.resources import CreatePostResourceV1, GetPostRes
 from internal.controllers.responses import DataResponse
 from internal.controllers.responses.error_code import (
     common_internal_error,
+    common_no_permission_error,
     common_validation_error,
     create_post_fail,
     delete_post_fail,
@@ -29,6 +30,7 @@ from internal.domains.errors import (
     CreatePostException,
     DeletePostException,
     GetPostException,
+    UnauthorizeException,
     UpdatePostException,
 )
 from internal.domains.services import PostSVC
@@ -220,6 +222,8 @@ async def update(
         if error_:
             if isinstance(error_, UpdatePostException):
                 res = DataResponse(message=update_post_fail)
+            elif isinstance(error_, UnauthorizeException):
+                res = DataResponse(message=common_no_permission_error)
         else:
             res = DataResponse(message=update_post_success)
 
@@ -268,6 +272,8 @@ async def delete(
         if error_:
             if isinstance(error_, DeletePostException):
                 res = DataResponse(message=delete_post_fail)
+            elif isinstance(error_, UnauthorizeException):
+                res = DataResponse(message=common_no_permission_error)
         else:
             res = DataResponse(message=delete_post_success)
 

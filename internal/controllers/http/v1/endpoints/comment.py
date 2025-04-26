@@ -18,6 +18,7 @@ from internal.controllers.http.resources import (
 from internal.controllers.responses import DataResponse
 from internal.controllers.responses.error_code import (
     common_internal_error,
+    common_no_permission_error,
     common_validation_error,
     create_comment_fail,
     delete_comment_fail,
@@ -35,6 +36,7 @@ from internal.domains.errors import (
     CreateCommentException,
     DeleteCommentException,
     GetCommentException,
+    UnauthorizeException,
     UpdateCommentException,
 )
 from internal.domains.services import CommentSVC
@@ -230,6 +232,8 @@ async def update(
         if error_:
             if isinstance(error_, UpdateCommentException):
                 res = DataResponse(message=update_comment_fail)
+            elif isinstance(error_, UnauthorizeException):
+                res = DataResponse(message=common_no_permission_error)
         else:
             res = DataResponse(message=update_comment_success)
 
@@ -275,6 +279,8 @@ async def delete(
         if error_:
             if isinstance(error_, DeleteCommentException):
                 res = DataResponse(message=delete_comment_fail)
+            elif isinstance(error_, UnauthorizeException):
+                res = DataResponse(message=common_no_permission_error)
         else:
             res = DataResponse(message=delete_comment_success)
 
