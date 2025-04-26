@@ -1,7 +1,5 @@
 from typing import Any, List
 
-from loguru import logger
-
 from internal.domains.entities import PermEntity
 from internal.domains.errors import (
     CheckPermException,
@@ -12,6 +10,9 @@ from internal.domains.usecases.abstraction import AbstractAuthorizationUC
 from internal.infrastructures.external_rebac_authorization_service.abstraction import (
     AbstractExternalReBACAuthorizationSVC,
 )
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 
 class AuthorizationUC(AbstractAuthorizationUC):

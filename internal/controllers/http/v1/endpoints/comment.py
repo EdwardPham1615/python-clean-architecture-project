@@ -4,7 +4,6 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
-from loguru import logger
 from pydantic import UUID4, Field, ValidationError
 
 from internal.controllers.http.payloads import (
@@ -41,6 +40,9 @@ from internal.domains.errors import (
 )
 from internal.domains.services import CommentSVC
 from internal.patterns import Container
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 router = APIRouter()
 

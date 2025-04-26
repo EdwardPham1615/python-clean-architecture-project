@@ -1,4 +1,3 @@
-from loguru import logger
 from starlette.requests import Request
 
 from internal.domains.entities import WebhookEventEntity
@@ -12,6 +11,9 @@ from internal.domains.usecases.abstraction import AbstractAuthenticationUC
 from internal.infrastructures.external_authentication_service.abstraction import (
     AbstractExternalAuthenticationSVC,
 )
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 
 class AuthenticationUC(AbstractAuthenticationUC):

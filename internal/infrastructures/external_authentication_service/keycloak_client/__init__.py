@@ -1,11 +1,10 @@
 import hashlib
 import hmac
 from datetime import UTC, datetime
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 from fastapi import Request
 from keycloak import KeycloakAdmin, KeycloakOpenID, KeycloakOpenIDConnection
-from loguru import logger
 
 from internal.domains.constants import WebhookEventOperation, WebhookEventResource
 from internal.domains.entities import (
@@ -16,8 +15,11 @@ from internal.domains.entities import (
 from internal.infrastructures.external_authentication_service.abstraction import (
     AbstractExternalAuthenticationSVC,
 )
+from utils.logger_utils import get_shared_logger
 from utils.string_utils import from_str_to_dict
 from utils.time_utils import from_timestamp_to_dt
+
+logger = get_shared_logger()
 
 
 class KeycloakClient(AbstractExternalAuthenticationSVC):

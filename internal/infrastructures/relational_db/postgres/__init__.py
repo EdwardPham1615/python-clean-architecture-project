@@ -4,7 +4,6 @@ from asyncio import current_task
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Type
 
-from loguru import logger
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_scoped_session,
@@ -12,6 +11,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 
 class PostgresDatabase:
