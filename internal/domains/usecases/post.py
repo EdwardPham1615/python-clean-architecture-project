@@ -98,7 +98,7 @@ class PostUC(AbstractPostUC):
             if not existed_post:
                 raise Exception(f"Not found post: {payload.id_}")
 
-            if existed_post.owner_id != payload.owner_id:
+            if str(existed_post.owner_id) != payload.owner_id:
                 raise Exception(f"{payload.owner_id} is not owner of this post")
 
             entity = PostEntity(
@@ -132,7 +132,7 @@ class PostUC(AbstractPostUC):
             if not existed_post:
                 raise Exception(f"Not found post: {payload.id_}")
 
-            if existed_post.owner_id != payload.owner_id:
+            if str(existed_post.owner_id) != payload.owner_id:
                 raise Exception(f"{payload.owner_id} is not owner of this post")
 
             await session.delete(id_=UUID4(payload.id_))
