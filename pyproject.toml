@@ -20,6 +20,7 @@ dependencies = [
     "pyjwt",
     "python-keycloak",
     "openfga-sdk",
+    "ecs_logging",
 ]
 
 [tool.uv]
