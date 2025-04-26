@@ -4,7 +4,6 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
 from jwcrypto.jws import InvalidJWSObject
 from jwcrypto.jwt import JWTExpired
-from loguru import logger
 from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -17,6 +16,9 @@ from internal.controllers.responses.error_code import (
 from internal.domains.entities import JWTPayload
 from internal.domains.services.abstraction import AbstractAuthenticationSVC
 from internal.patterns import Container
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):

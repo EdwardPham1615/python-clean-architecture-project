@@ -1,7 +1,5 @@
 from typing import List, Optional, Tuple
 
-from loguru import logger
-
 from internal.domains.constants import V1ReBACObjectType, V1ReBACRelation
 from internal.domains.entities import (
     CommentEntity,
@@ -38,6 +36,9 @@ from internal.domains.usecases.abstraction import (
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 
 class UserSVC(AbstractUserSVC):

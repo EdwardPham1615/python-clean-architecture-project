@@ -1,8 +1,47 @@
 from typing import Optional
 
 from dynaconf import Dynaconf
-from loguru import logger
 from pydantic import BaseModel, Field
+
+
+# We'll use a deferred logger to avoid circular imports
+# This will be replaced with the actual logger once it's available
+class DeferredLogger:
+    def __init__(self):
+        self.messages = []
+        self.real_logger = None
+
+    def _log(self, level, message, *args, **kwargs):
+        if self.real_logger:
+            getattr(self.real_logger, level)(message, *args, **kwargs)
+        else:
+            self.messages.append((level, message, args, kwargs))
+
+    def info(self, message, *args, **kwargs):
+        self._log("info", message, *args, **kwargs)
+
+    def warning(self, message, *args, **kwargs):
+        self._log("warning", message, *args, **kwargs)
+
+    def error(self, message, *args, **kwargs):
+        self._log("error", message, *args, **kwargs)
+
+    def exception(self, message, *args, **kwargs):
+        self._log("exception", message, *args, **kwargs)
+
+    def debug(self, message, *args, **kwargs):
+        self._log("debug", message, *args, **kwargs)
+
+    def set_real_logger(self, _logger):
+        self.real_logger = _logger
+        # Replay any deferred messages
+        for level, message, args, kwargs in self.messages:
+            getattr(self.real_logger, level)(message, *args, **kwargs)
+        self.messages = []
+
+
+# Create a deferred logger
+logger = DeferredLogger()
 
 # Load settings
 settings = Dynaconf(
@@ -35,6 +74,7 @@ class AuthenticationServiceConfig(BaseModel):
 class RelationalDBConfig(BaseModel):
     vendor: Optional[str] = Field("postgres", alias="VENDOR")
     url: str = Field(..., alias="URL")
+    enable_log: bool = Field(..., alias="ENABLE_LOG")
     enable_auto_migrate: bool = Field(..., alias="ENABLE_AUTO_MIGRATE")
 
 
@@ -67,6 +107,7 @@ try:
         RELATIONAL_DB=RelationalDBConfig(
             VENDOR=settings.RELATIONAL_DB.VENDOR,
             URL=settings.RELATIONAL_DB.URL,
+            ENABLE_LOG=settings.RELATIONAL_DB.ENABLE_LOG,
             ENABLE_AUTO_MIGRATE=settings.RELATIONAL_DB.ENABLE_AUTO_MIGRATE,
         ),
         AUTHENTICATION_SERVICE=AuthenticationServiceConfig(

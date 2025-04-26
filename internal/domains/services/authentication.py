@@ -1,7 +1,6 @@
 from typing import Optional, Tuple
 
 from fastapi import Request
-from loguru import logger
 
 from internal.domains.constants import WebhookEventOperation, WebhookEventResource
 from internal.domains.entities import CreateUserPayload, WebhookEventEntity
@@ -21,7 +20,10 @@ from internal.domains.usecases.abstraction import (
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
+from utils.logger_utils import get_shared_logger
 from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_dt_to_str
+
+logger = get_shared_logger()
 
 
 class AuthenticationSVC(AbstractAuthenticationSVC):

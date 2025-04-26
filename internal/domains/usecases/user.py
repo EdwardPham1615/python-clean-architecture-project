@@ -2,7 +2,6 @@ import uuid
 from datetime import UTC, datetime
 from typing import Optional
 
-from loguru import logger
 from pydantic import UUID4
 
 from internal.domains.entities import CreateUserPayload, UpdateUserPayload, UserEntity
@@ -19,7 +18,10 @@ from internal.infrastructures.relational_db.abstraction import (
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
+from utils.logger_utils import get_shared_logger
 from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_str_to_dt
+
+logger = get_shared_logger()
 
 
 class UserUC(AbstractUserUC):

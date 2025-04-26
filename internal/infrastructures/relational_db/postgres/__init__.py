@@ -4,7 +4,6 @@ from asyncio import current_task
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Type
 
-from loguru import logger
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_scoped_session,
@@ -13,14 +12,21 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase
 
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
+
 
 class PostgresDatabase:
-    def __init__(self, db_url: str, enable_migrations: bool = True):
+    def __init__(
+        self, db_url: str, enable_log: bool = True, enable_migrations: bool = True
+    ):
         self._db_url = db_url
+        self._enable_log = enable_log
         self._enable_migrations = enable_migrations
         self._engine = create_async_engine(
             url=self._db_url,
-            echo=True,
+            echo=self._enable_log,
             isolation_level="SERIALIZABLE",
         )
 

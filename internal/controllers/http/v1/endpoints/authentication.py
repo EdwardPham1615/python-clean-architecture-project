@@ -4,7 +4,6 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
-from loguru import logger
 
 from internal.controllers.responses import DataResponse
 from internal.controllers.responses.error_code import (
@@ -16,6 +15,9 @@ from internal.controllers.responses.success_code import sync_webhook_event_succe
 from internal.domains.errors import UnauthorizedWebhookException
 from internal.domains.services import AuthenticationSVC
 from internal.patterns import Container
+from utils.logger_utils import get_shared_logger
+
+logger = get_shared_logger()
 
 router = APIRouter()
 
