@@ -105,7 +105,7 @@ class CommentUC(AbstractCommentUC):
             if not existed_comment:
                 raise Exception(f"Not found comment: {payload.id_}")
 
-            if existed_comment.owner_id != payload.owner_id:
+            if str(existed_comment.owner_id) != payload.owner_id:
                 raise Exception(f"{payload.owner_id} is not owner of this comment")
 
             entity = CommentEntity(
@@ -142,7 +142,7 @@ class CommentUC(AbstractCommentUC):
             if not existed_comment:
                 raise Exception(f"Not found comment: {payload.id_}")
 
-            if existed_comment.owner_id != payload.owner_id:
+            if str(existed_comment.owner_id) != payload.owner_id:
                 raise Exception(f"{payload.owner_id} is not owner of this comment")
 
             await session.delete(id_=UUID4(payload.id_))

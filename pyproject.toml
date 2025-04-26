@@ -18,7 +18,8 @@ dependencies = [
     "uvicorn",
     "dependency-injector",
     "pyjwt",
-    "python-keycloak"
+    "python-keycloak",
+    "openfga-sdk",
 ]
 
 [tool.uv]

@@ -98,6 +98,8 @@ Ensure you have the following installed:
 
 - Keycloak 26.x (Optional) (Use your own local Keycloak with webhook extension [https://github.com/p2-inc/keycloak-events](...) or you can use my docker-compose.dev.yaml)
 
+- OpenFGA 1.8.9 (Optional) (Use your own local OpenFGA or you can use my docker-compose.dev.yaml)
+
 - Docker & Docker Compose (Optional)
 
 - make (Optional)
@@ -132,26 +134,41 @@ Ensure you have the following installed:
 4. **Manage Keycloak and Webhook Config**
 
    ```sh
-   This section is optional and my repo still working without Keycloak !!!
+   This section is optional and our repo still working without Keycloak, but you need to implement another authentication service by yourself !!!
    
    In this repo, i use Phasetwo as an example of authentication service integration (https://phasetwo.io/docs/introduction/), is basically Keycloak with extensions.
    But you can just use an original Keycloak and then install webhook extension with it (optional).
    
    Step 1: Setup your Keycloak using the original documents 
-   https://www.keycloak.org/documentation
+   https://www.keycloak.org/documentation.
    
    Step 2: Setup webhooks (optional)
    Follow this document https://phasetwo.io/docs/audit-logs/webhooks/
-   And checkout my folder "examples/external_authentication_service_webhook_crud"
+   And checkout my folder "examples/external_authentication_service_webhook_crud".
    ```
 
-5. **Start the Application**
+5. **Setup OpenFGA**
+
+   ```sh
+   This section is optional and our repo still working without OpenFGA, but you need to implement another authorization service by yourself !!!
+   
+   In this repo, we need a token, a store_id and a authorization_model_id.
+   Follow the official document of OpenFGA for details (https://openfga.dev/docs/getting-started/setup-openfga/overview).
+   
+   Step 1: Generate a new token for OpenFGA then config it for docker and also our app, we use a simple authen method (https://openfga.dev/docs/getting-started/setup-openfga/configure-openfga#pre-shared-key-authentication).
+   Step 2: Create a new store, use playground to make it simple or you can follow this (https://openfga.dev/docs/getting-started/create-store).
+   Step 3: Create a new authorization_model_id model, use playground to make it simple or you can follow this (https://openfga.dev/docs/getting-started/configure-model).
+            I have already create a sample of authorization model here "internal/infrastructures/external_rebac_authorization_service/openfga_client/authorization_model_versions/00001_autho_model.dsl".
+   Step 4: Config token, store_id and authorization_model_id to our app.
+   ```
+
+6. **Start the Application**
 
    ```sh
    python main.py
    ```
 
-6. **Alternative run with docker**
+7. **Alternative run with docker**
 
    ```sh
    # if you do not want to start from scratch, just run with docker
@@ -170,10 +187,9 @@ Ensure you have the following installed:
    make restart
 
    ```
+   
+8. **Access the API**
 
-7. **Access the API**
-
-   - Open `http://127.0.0.1:8080/docs` for Swagger UI.
-   - Use `http://127.0.0.1:8080/redoc` for Redoc documentation.
+   - Use `http://127.0.0.1:8082/docs` for Swagger UI.
+   - Use `http://127.0.0.1:8082/redoc` for Redoc documentation.
    - Use `http://127.0.0.1:5000/healh-check` for health check port
-

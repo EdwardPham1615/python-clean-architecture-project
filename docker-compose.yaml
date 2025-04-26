@@ -14,7 +14,7 @@ services:
       - clean-arc-network
     environment:
       POSTGRESQL_USERNAME: "cleanarc"
-      POSTGRESQL_PASSWORD: "cleanarc!123#"
+      POSTGRESQL_PASSWORD: "cleanarc!123"
       POSTGRESQL_DATABASE: "cleanarc"
     volumes:
       - "./cleanarc_db_data:/bitnami/postgresql"
@@ -24,14 +24,14 @@ services:
       options:
         max-file: "10"
         max-size: 20m
-  init-clean-arc-authentication-service-db:
+  init-external-services-db:
     image: postgres:15-alpine
     networks:
       - clean-arc-network
     depends_on:
       - clean-arc-relational-db
     environment:
-      PGPASSWORD: "cleanarc!123#"
+      PGPASSWORD: "cleanarc!123"
     entrypoint: [ "sh", "-c" ]
     command: >
       "
@@ -41,6 +41,8 @@ services:
       done;
       psql -h clean-arc-relational-db -U cleanarc -tc \"SELECT 1 FROM pg_database WHERE datname = 'keycloak'\" |
         grep -q 1 || psql -h clean-arc-relational-db -U cleanarc -c 'CREATE DATABASE keycloak;';
+      psql -h clean-arc-relational-db -U cleanarc -tc \"SELECT 1 FROM pg_database WHERE datname = 'openfga'\" |
+        grep -q 1 || psql -h clean-arc-relational-db -U cleanarc -c 'CREATE DATABASE openfga;';
       "
   clean-arc-authentication-service:
     image: quay.io/phasetwo/phasetwo-keycloak:26.1.4
@@ -51,7 +53,7 @@ services:
       - clean-arc-network
     depends_on:
       - clean-arc-relational-db
-      - init-clean-arc-authentication-service-db
+      - init-external-services-db
     environment:
       PROXY_ADDRESS_FORWARDING: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
@@ -62,7 +64,7 @@ services:
       KC_DB_URL_DATABASE: "keycloak"
       KC_DB_SCHEMA: "public"
       KC_DB_USERNAME: "cleanarc"
-      KC_DB_PASSWORD: "cleanarc!123#"
+      KC_DB_PASSWORD: "cleanarc!123"
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
       KC_PROXY: "edge"
@@ -75,14 +77,55 @@ services:
       options:
         max-file: "10"
         max-size: 20m
+  clean-arc-authorization-service-migration:
+    image: openfga/openfga:v1.8.9
+    container_name: clean-arc-authorization-service-migration
+    networks:
+      - clean-arc-network
+    depends_on:
+      - clean-arc-relational-db
+      - init-external-services-db
+    environment:
+      OPENFGA_DATASTORE_ENGINE: "postgres"
+      OPENFGA_DATASTORE_URI: "postgres://cleanarc:cleanarc!123@clean-arc-relational-db:5432/openfga?sslmode=disable"
+    command: migrate
+  clean-arc-authorization-service:
+    image: openfga/openfga:v1.8.9
+    container_name: clean-arc-authorization-service
+    networks:
+      - clean-arc-network
+    depends_on:
+      clean-arc-authorization-service-migration:
+        condition: service_completed_successfully
+    ports:
+      # Needed for the http server
+      - "8080:8080"
+      # Needed for the grpc server (if used)
+      - "8083:8081"
+      # Needed for the playground (Do not enable in prod!)
+      - "3000:3000"
+    environment:
+      OPENFGA_DATASTORE_ENGINE: "postgres"
+      OPENFGA_DATASTORE_URI: "postgres://cleanarc:cleanarc!123@clean-arc-relational-db:5432/openfga?sslmode=disable"
+      OPENFGA_LOG_FORMAT: "json"
+      OPENFGA_AUTHN_METHOD: "preshared"
+      OPENFGA_AUTHN_PRESHARED_KEYS: ""
+    command: run
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
   clean-arc-be:
     image: python-clean-architecture-be:latest
     container_name: clean-arc-be
     depends_on:
       - clean-arc-relational-db
       - clean-arc-authentication-service
+      - clean-arc-authorization-service
     ports:
-      - "8080:8080"
+      - "8082:8082"
       - "5000:5000"
     networks:
       - clean-arc-network

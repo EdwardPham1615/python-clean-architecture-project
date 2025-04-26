@@ -2,9 +2,18 @@ from dependency_injector import containers, providers
 
 from config import app_config
 from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
-from internal.domains.usecases import AuthenticationUC, CommentUC, PostUC, UserUC
+from internal.domains.usecases import (
+    AuthenticationUC,
+    AuthorizationUC,
+    CommentUC,
+    PostUC,
+    UserUC,
+)
 from internal.infrastructures.external_authentication_service import (
     ExternalAuthenticationServiceClient,
+)
+from internal.infrastructures.external_rebac_authorization_service import (
+    ExternalReBACAuthorizationServiceClient,
 )
 from internal.infrastructures.relational_db import (
     CommentRepo,
@@ -56,6 +65,16 @@ class Container(containers.DeclarativeContainer):
         webhook_secret=app_config.authentication_service.webhook_secret,
     )
 
+    ## External ReBAC Authorization Service
+    external_rebac_authorization_svc = providers.Resource(
+        ExternalReBACAuthorizationServiceClient,
+        url=app_config.rebac_authorization_service.url,
+        api_token=app_config.rebac_authorization_service.token,
+        store_id=app_config.rebac_authorization_service.store_id,
+        authorization_model_id=app_config.rebac_authorization_service.authorization_model_id,
+        timeout_in_millis=app_config.rebac_authorization_service.timeout_in_millis,
+    )
+
     ### Repositories
     post_repo = providers.Factory(PostRepo, session=relational_db_session)
     comment_repo = providers.Factory(CommentRepo, session=relational_db_session)
@@ -79,6 +98,9 @@ class Container(containers.DeclarativeContainer):
     authentication_uc = providers.Factory(
         AuthenticationUC, external_authentication_svc=external_authentication_svc
     )
+    authorization_uc = providers.Factory(
+        AuthorizationUC, external_authorization_svc=external_rebac_authorization_svc
+    )
 
     ## Services
     post_svc = providers.Factory(
@@ -87,12 +109,14 @@ class Container(containers.DeclarativeContainer):
         post_uc=post_uc,
         comment_uc=comment_uc,
         user_uc=user_uc,
+        authorization_uc=authorization_uc,
     )
     comment_svc = providers.Factory(
         CommentSVC,
         relational_db_uow=relational_db_uow,
         comment_uc=comment_uc,
         user_uc=user_uc,
+        authorization_uc=authorization_uc,
     )
     user_svc = providers.Factory(
         UserSVC,
@@ -100,6 +124,7 @@ class Container(containers.DeclarativeContainer):
         user_uc=user_uc,
         post_uc=post_uc,
         comment_uc=comment_uc,
+        authorization_uc=authorization_uc,
     )
     authentication_svc = providers.Factory(
         AuthenticationSVC,
