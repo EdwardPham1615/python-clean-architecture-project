@@ -35,6 +35,10 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             Container.authentication_svc
         ],
     ):
+        # Skip OPTIONS (preflight) requests entirely
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip authentication for excluded paths
         if request.url.path in self.excluded_paths:
             return await call_next(request)
