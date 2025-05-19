@@ -17,49 +17,27 @@ class UserRepo(AbstractUserRepo):
             "updated_at": User.updated_at,
         }
 
-    async def create(
-        self, entity: UserEntity, uow_session: Optional[AsyncSession] = None
-    ) -> UUID4:
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def create(self, entity: UserEntity) -> UUID4:
         obj_in_data = entity.to_dict()
         stmt = insert(User).values(**obj_in_data).returning(User.id_)
-        result = await session_.execute(stmt)
+        result = await self.session.execute(stmt)
         new_id = result.scalar()
         return new_id
 
-    async def get_by_id(
-        self, id_: UUID4, uow_session: Optional[AsyncSession] = None
-    ) -> Optional[UserEntity]:
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def get_by_id(self, id_: UUID4) -> Optional[UserEntity]:
         stmt = select(User).filter(User.id_ == id_)
-        token_ = (await session_.execute(stmt)).scalars().first()
+        token_ = (await self.session.execute(stmt)).scalars().first()
         if not token_:
             return None
         return UserModelMapper.to_entity(model=token_)
 
-    async def update(
-        self, entity: UserEntity, uow_session: Optional[AsyncSession] = None
-    ):
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def update(self, entity: UserEntity):
         obj_in_data = entity.to_dict()
         stmt = update(User).where(User.id_ == entity.id_).values(**obj_in_data)
-        await session_.execute(stmt)
+        await self.session.execute(stmt)
         return
 
-    async def delete(self, id_: UUID4, uow_session: Optional[AsyncSession] = None):
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def delete(self, id_: UUID4):
         stmt = delete(User).where(User.id_ == id_)
-        await session_.execute(stmt)
+        await self.session.execute(stmt)
         return
