@@ -18,9 +18,6 @@ from internal.domains.errors import (
     UpdatePostException,
 )
 from internal.domains.usecases.abstraction import AbstractPostUC
-from internal.infrastructures.relational_db.abstraction import (
-    AbstractPostRepo as RelationalDBAbstractPostRepo,
-)
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
@@ -31,16 +28,14 @@ logger = get_shared_logger()
 
 
 class PostUC(AbstractPostUC):
-    def __init__(self, relational_db_post_repo: RelationalDBAbstractPostRepo):
-        self._relational_db_post_repo = relational_db_post_repo
+    def __init__(self):
+        pass
 
     async def create(
-        self, payload: CreatePostPayload, uow: Optional[RelationalDBUnitOfWork] = None
+        self, payload: CreatePostPayload, uow: RelationalDBUnitOfWork
     ) -> Optional[PostEntity]:
         try:
-            session = self._relational_db_post_repo
-            if uow:
-                session = uow.post_repo
+            session = uow.post_repo
 
             entity = PostEntity(
                 id_=uuid.uuid4(),
@@ -63,12 +58,10 @@ class PostUC(AbstractPostUC):
             raise CreatePostException(exc)
 
     async def get_by_id(
-        self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None
+        self, id_: str, uow: RelationalDBUnitOfWork
     ) -> Optional[PostEntity]:
         try:
-            session = self._relational_db_post_repo
-            if uow:
-                session = uow.post_repo
+            session = uow.post_repo
 
             return await session.get_by_id(id_=UUID4(id_))
         except Exception as exc:
@@ -76,25 +69,19 @@ class PostUC(AbstractPostUC):
             raise GetPostException(exc)
 
     async def get_multi(
-        self, filter_: GetMultiPostsFilter, uow: Optional[RelationalDBUnitOfWork] = None
+        self, filter_: GetMultiPostsFilter, uow: RelationalDBUnitOfWork
     ) -> Tuple[List[PostEntity], Optional[int]]:
         try:
-            session = self._relational_db_post_repo
-            if uow:
-                session = uow.post_repo
+            session = uow.post_repo
 
             return await session.get_multi(filter_=filter_)
         except Exception as exc:
             logger.error(exc)
             raise GetPostException(exc)
 
-    async def update(
-        self, payload: UpdatePostPayload, uow: Optional[RelationalDBUnitOfWork] = None
-    ):
+    async def update(self, payload: UpdatePostPayload, uow: RelationalDBUnitOfWork):
         try:
-            session = self._relational_db_post_repo
-            if uow:
-                session = uow.post_repo
+            session = uow.post_repo
 
             existed_post = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_post:
@@ -122,13 +109,9 @@ class PostUC(AbstractPostUC):
             logger.error(exc)
             raise UpdatePostException(exc)
 
-    async def delete(
-        self, payload: DeletePostPayload, uow: Optional[RelationalDBUnitOfWork] = None
-    ):
+    async def delete(self, payload: DeletePostPayload, uow: RelationalDBUnitOfWork):
         try:
-            session = self._relational_db_post_repo
-            if uow:
-                session = uow.post_repo
+            session = uow.post_repo
 
             existed_post = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_post:

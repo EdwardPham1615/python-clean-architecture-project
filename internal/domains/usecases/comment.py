@@ -18,9 +18,6 @@ from internal.domains.errors import (
     UpdateCommentException,
 )
 from internal.domains.usecases.abstraction import AbstractCommentUC
-from internal.infrastructures.relational_db.abstraction import (
-    AbstractCommentRepo as RelationalDBAbstractCommentRepo,
-)
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
@@ -31,18 +28,16 @@ logger = get_shared_logger()
 
 
 class CommentUC(AbstractCommentUC):
-    def __init__(self, relational_db_comment_repo: RelationalDBAbstractCommentRepo):
-        self._relational_db_comment_repo = relational_db_comment_repo
+    def __init__(self):
+        pass
 
     async def create(
         self,
         payload: CreateCommentPayload,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ) -> Optional[CommentEntity]:
         try:
-            session = self._relational_db_comment_repo
-            if uow:
-                session = uow.comment_repo
+            session = uow.comment_repo
 
             entity = CommentEntity(
                 id_=uuid.uuid4(),
@@ -69,9 +64,7 @@ class CommentUC(AbstractCommentUC):
         self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None
     ) -> Optional[CommentEntity]:
         try:
-            session = self._relational_db_comment_repo
-            if uow:
-                session = uow.comment_repo
+            session = uow.comment_repo
 
             return await session.get_by_id(id_=UUID4(id_))
         except Exception as exc:
@@ -81,12 +74,10 @@ class CommentUC(AbstractCommentUC):
     async def get_multi(
         self,
         filter_: GetMultiCommentsFilter,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ) -> Tuple[List[CommentEntity], Optional[int]]:
         try:
-            session = self._relational_db_comment_repo
-            if uow:
-                session = uow.comment_repo
+            session = uow.comment_repo
 
             return await session.get_multi(filter_=filter_)
         except Exception as exc:
@@ -96,12 +87,10 @@ class CommentUC(AbstractCommentUC):
     async def update(
         self,
         payload: UpdateCommentPayload,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ):
         try:
-            session = self._relational_db_comment_repo
-            if uow:
-                session = uow.comment_repo
+            session = uow.comment_repo
 
             existed_comment = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_comment:
@@ -133,12 +122,10 @@ class CommentUC(AbstractCommentUC):
     async def delete(
         self,
         payload: DeleteCommentPayload,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ):
         try:
-            session = self._relational_db_comment_repo
-            if uow:
-                session = uow.comment_repo
+            session = uow.comment_repo
 
             existed_comment = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_comment:

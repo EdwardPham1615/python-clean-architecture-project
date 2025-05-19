@@ -8,28 +8,23 @@ from internal.domains.entities import (
     GetMultiCommentsFilter,
     UpdateCommentPayload,
 )
-from internal.infrastructures.relational_db.abstraction import (
-    AbstractCommentRepo as RelationalDBAbstractCommentRepo,
-)
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
 
 
 class AbstractCommentUC(abc.ABC):
-    relational_db_comment_repo: RelationalDBAbstractCommentRepo
-
     @abc.abstractmethod
     async def create(
         self,
         payload: CreateCommentPayload,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ) -> Optional[CommentEntity]:
         raise NotImplementedError
 
     @abc.abstractmethod
     async def get_by_id(
-        self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None
+        self, id_: str, uow: RelationalDBUnitOfWork
     ) -> Optional[CommentEntity]:
         raise NotImplementedError
 
@@ -37,7 +32,7 @@ class AbstractCommentUC(abc.ABC):
     async def get_multi(
         self,
         filter_: GetMultiCommentsFilter,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ) -> Tuple[List[CommentEntity], Optional[int]]:
         raise NotImplementedError
 
@@ -45,7 +40,7 @@ class AbstractCommentUC(abc.ABC):
     async def update(
         self,
         payload: UpdateCommentPayload,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ):
         raise NotImplementedError
 
@@ -53,6 +48,6 @@ class AbstractCommentUC(abc.ABC):
     async def delete(
         self,
         payload: DeleteCommentPayload,
-        uow: Optional[RelationalDBUnitOfWork] = None,
+        uow: RelationalDBUnitOfWork,
     ):
         raise NotImplementedError

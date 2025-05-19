@@ -12,9 +12,6 @@ from internal.domains.errors import (
     UpdateUserException,
 )
 from internal.domains.usecases.abstraction import AbstractUserUC
-from internal.infrastructures.relational_db.abstraction import (
-    AbstractUserRepo as RelationalDBAbstractUserRepo,
-)
 from internal.infrastructures.relational_db.patterns import (
     AbstractUnitOfWork as RelationalDBUnitOfWork,
 )
@@ -25,16 +22,14 @@ logger = get_shared_logger()
 
 
 class UserUC(AbstractUserUC):
-    def __init__(self, relational_db_user_repo: RelationalDBAbstractUserRepo):
-        self._relational_db_user_repo = relational_db_user_repo
+    def __init__(self):
+        pass
 
     async def create(
-        self, payload: CreateUserPayload, uow: Optional[RelationalDBUnitOfWork] = None
+        self, payload: CreateUserPayload, uow: RelationalDBUnitOfWork
     ) -> Optional[UserEntity]:
         try:
-            session = self._relational_db_user_repo
-            if uow:
-                session = uow.user_repo
+            session = uow.user_repo
 
             entity = UserEntity(
                 id_=uuid.uuid4(),
@@ -59,25 +54,19 @@ class UserUC(AbstractUserUC):
             raise CreateUserException(exc)
 
     async def get_by_id(
-        self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None
+        self, id_: str, uow: RelationalDBUnitOfWork
     ) -> Optional[UserEntity]:
         try:
-            session = self._relational_db_user_repo
-            if uow:
-                session = uow.user_repo
+            session = uow.user_repo
 
             return await session.get_by_id(id_=UUID4(id_))
         except Exception as exc:
             logger.error(exc)
             raise GetUserException(exc)
 
-    async def update(
-        self, payload: UpdateUserPayload, uow: Optional[RelationalDBUnitOfWork] = None
-    ):
+    async def update(self, payload: UpdateUserPayload, uow: RelationalDBUnitOfWork):
         try:
-            session = self._relational_db_user_repo
-            if uow:
-                session = uow.user_repo
+            session = uow.user_repo
 
             existed_user = await session.get_by_id(id_=UUID4(payload.id_))
             if not existed_user:
@@ -103,11 +92,9 @@ class UserUC(AbstractUserUC):
             logger.error(exc)
             raise UpdateUserException(exc)
 
-    async def delete(self, id_: str, uow: Optional[RelationalDBUnitOfWork] = None):
+    async def delete(self, id_: str, uow: RelationalDBUnitOfWork):
         try:
-            session = self._relational_db_user_repo
-            if uow:
-                session = uow.user_repo
+            session = uow.user_repo
 
             existed_user = await session.get_by_id(id_=UUID4(id_))
             if not existed_user:
