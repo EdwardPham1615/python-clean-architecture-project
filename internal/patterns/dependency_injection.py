@@ -80,9 +80,9 @@ class Container(containers.DeclarativeContainer):
     relational_db_uow = providers.Factory(
         AsyncSQLAlchemyUnitOfWork,
         scoped_session=relational_db_scoped_session,
-        post_repo_factory=post_repo_factory,
-        comment_repo_factory=comment_repo_factory,
-        user_repo_factory=user_repo_factory,
+        post_repo_factory=post_repo_factory.provider,
+        comment_repo_factory=comment_repo_factory.provider,
+        user_repo_factory=user_repo_factory.provider,
     )
 
     # Domains
@@ -132,3 +132,8 @@ class Container(containers.DeclarativeContainer):
 async def initialize_relational_db(container: Container):
     """Initialize the relational database."""
     await container.relational_db().initialize_db(declarative_base=Base)
+
+
+async def close_relational_db(container: Container):
+    """Initialize the relational database."""
+    await container.relational_db().close()
