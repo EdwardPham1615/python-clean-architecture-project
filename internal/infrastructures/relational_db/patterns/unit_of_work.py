@@ -1,8 +1,12 @@
 import abc
 from abc import abstractmethod
-from typing import Any, Optional, Type
+from typing import Any, Callable, Optional, Type
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    AsyncSessionTransaction,
+    async_scoped_session,
+)
 
 from internal.infrastructures.relational_db import CommentRepo, PostRepo, UserRepo
 from internal.infrastructures.relational_db.abstraction import (
@@ -43,21 +47,26 @@ class AsyncSQLAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def __init__(
         self,
-        session: AsyncSession,
         scoped_session: async_scoped_session[AsyncSession],
-        post_repo: PostRepo,
-        comment_repo: CommentRepo,
-        user_repo: UserRepo,
+        post_repo_factory: Callable[[AsyncSession], PostRepo],
+        comment_repo_factory: Callable[[AsyncSession], CommentRepo],
+        user_repo_factory: Callable[[AsyncSession], UserRepo],
     ):
-        super().__init__(
-            post_repo=post_repo,
-            comment_repo=comment_repo,
-            user_repo=user_repo,
-        )
-        self._session = session
-        self._scoped_session = scoped_session
+        self._scoped_session_factory = scoped_session
+        self._session: Optional[AsyncSession] = None
+        self._transaction: Optional[AsyncSessionTransaction] = None
+        self._post_repo_factory = post_repo_factory
+        self._comment_repo_factory = comment_repo_factory
+        self._user_repo_factory = user_repo_factory
 
     async def __aenter__(self):
+        self._session = self._scoped_session_factory()
+        self._transaction = await self._session.begin()
+
+        # register repo
+        self.post_repo = self._post_repo_factory(self._session)
+        self.comment_repo = self._comment_repo_factory(self._session)
+        self.user_repo = self._user_repo_factory(self._session)
         return self
 
     async def __aexit__(
@@ -68,14 +77,12 @@ class AsyncSQLAlchemyUnitOfWork(AbstractUnitOfWork):
     ):
         try:
             if exc_type is None:
-                await self._session.commit()
+                await self._transaction.commit()
             else:
-                await self._session.rollback()
+                await self._transaction.rollback()
+        except Exception:
+            await self._transaction.rollback()
+            raise
         finally:
             await self._session.close()
-            await self.remove()
-
-    async def remove(self):
-        """Removes the scoped session from SQLAlchemy async session."""
-
-        await self._scoped_session.remove()
+            await self._scoped_session_factory.remove()
