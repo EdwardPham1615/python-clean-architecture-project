@@ -8,7 +8,6 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic",
     "asyncpg",
-    "dynaconf",
     "fastapi",
     "loguru",
     "orjson",
@@ -21,6 +20,7 @@ dependencies = [
     "python-keycloak",
     "openfga-sdk",
     "ecs_logging",
+    "pydantic-settings",
 ]
 
 [tool.uv]
