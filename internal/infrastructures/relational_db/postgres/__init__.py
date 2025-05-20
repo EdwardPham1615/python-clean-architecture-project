@@ -76,6 +76,12 @@ class PostgresDatabase:
                 await connection.run_sync(declarative_base.metadata.create_all)
             await self._engine.dispose()
 
+    async def close(self):
+        if self._scoped_session:
+            await self._scoped_session.aclose()
+        if self._engine:
+            await self._engine.dispose()
+
     @asynccontextmanager
     async def session(self) -> AsyncGenerator[AsyncSession, None]:
         """Provides a session scope with automatic cleanup."""

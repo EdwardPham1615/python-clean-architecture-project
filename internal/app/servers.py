@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
@@ -7,6 +9,8 @@ from starlette.requests import Request
 from internal.app import JWTAuthMiddleware
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
+from internal.patterns import Container, initialize_relational_db
+from internal.patterns.dependency_injection import close_relational_db
 from utils.logger_utils import get_shared_logger
 
 logger = get_shared_logger()
@@ -15,7 +19,28 @@ app_status = {"alive": True, "status_code": 200, "message": "I'm fine"}
 
 
 def init_http_server() -> FastAPI:
-    server_ = FastAPI(default_response_class=ORJSONResponse)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        try:
+            # Get the container instance
+            container = Container()
+
+            # Initialize relational database
+            await initialize_relational_db(container=container)
+            logger.info("Relational database initialized")
+
+            yield
+
+            # Close relational database
+            await close_relational_db(container=container)
+            logger.info("Relational database closed")
+        except Exception as exc:
+            logger.error(f"Main HTTP server crashed due to: {exc}")
+            app_status["alive"] = False
+            app_status["status_code"] = 500
+            app_status["message"] = str(exc)
+
+    server_ = FastAPI(default_response_class=ORJSONResponse, lifespan=lifespan)
 
     server_.add_middleware(
         middleware_class=CORSMiddleware,

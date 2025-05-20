@@ -21,42 +21,24 @@ class CommentRepo(AbstractCommentRepo):
             "updated_at": Comment.updated_at,
         }
 
-    async def create(
-        self, entity: CommentEntity, uow_session: Optional[AsyncSession] = None
-    ) -> UUID4:
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def create(self, entity: CommentEntity) -> UUID4:
         obj_in_data = entity.to_dict(exclude_none=True)
         stmt = insert(Comment).values(**obj_in_data).returning(Comment.id_)
-        result = await session_.execute(stmt)
+        result = await self.session.execute(stmt)
         new_id = result.scalar()
         return new_id
 
-    async def get_by_id(
-        self, id_: UUID4, uow_session: Optional[AsyncSession] = None
-    ) -> Optional[CommentEntity]:
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def get_by_id(self, id_: UUID4) -> Optional[CommentEntity]:
         stmt = select(Comment).filter(Comment.id_ == id_)
-        token_ = (await session_.execute(stmt)).scalars().first()
+        token_ = (await self.session.execute(stmt)).scalars().first()
         if not token_:
             return None
         return CommentModelMapper.to_entity(model=token_)
 
     async def get_multi(
-        self,
-        filter_: GetMultiCommentsFilter,
-        uow_session: Optional[AsyncSession] = None,
+        self, filter_: GetMultiCommentsFilter
     ) -> Tuple[List[CommentEntity], Optional[int]]:
         sort_stmt: Optional[UnaryExpression] = None
-
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
 
         if filter_.sort_field not in self.sort_fields:
             sort_stmt = desc(Comment.created_at)
@@ -85,34 +67,24 @@ class CommentRepo(AbstractCommentRepo):
         total_count: Optional[int] = None
         if filter_.enable_count:
             count_q = select(func.count(Comment.id_)).filter(*filter_stmt)
-            total_count = (await session_.execute(count_q)).scalar()
+            total_count = (await self.session.execute(count_q)).scalar()
 
         # Main query with sorting, offset, and limit
         q = select(Comment)
         if filter_stmt:
             q = q.filter(*filter_stmt)
         q = q.order_by(sort_stmt).offset(filter_.offset).limit(filter_.limit)
-        result = (await session_.execute(q)).scalars().all()
+        result = (await self.session.execute(q)).scalars().all()
         comments = [CommentModelMapper.to_entity(model=comment_) for comment_ in result]
         return comments, total_count
 
-    async def update(
-        self, entity: CommentEntity, uow_session: Optional[AsyncSession] = None
-    ):
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def update(self, entity: CommentEntity):
         obj_in_data = entity.to_dict(exclude_none=True)
         stmt = update(Comment).where(Comment.id_ == entity.id_).values(**obj_in_data)
-        await session_.execute(stmt)
+        await self.session.execute(stmt)
         return
 
-    async def delete(self, id_: UUID4, uow_session: Optional[AsyncSession] = None):
-        session_ = self.session
-        if uow_session:
-            session_ = uow_session
-
+    async def delete(self, id_: UUID4):
         stmt = delete(Comment).where(Comment.id_ == id_)
-        await session_.execute(stmt)
+        await self.session.execute(stmt)
         return

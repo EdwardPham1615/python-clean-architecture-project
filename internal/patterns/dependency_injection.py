@@ -45,11 +45,6 @@ class Container(containers.DeclarativeContainer):
         enable_migrations=app_config.relational_db.enable_auto_migrate,
     )
 
-    async def get_relational_db_session(relational_db_: Database):
-        async with relational_db_.session() as session:  # Enters the context
-            yield session  # Returns an AsyncSession instance
-
-    relational_db_session = providers.Resource(get_relational_db_session, relational_db)
     relational_db_scoped_session = providers.Resource(
         relational_db.provided.scoped_session, relational_db
     )
@@ -77,25 +72,24 @@ class Container(containers.DeclarativeContainer):
     )
 
     ### Repositories
-    post_repo = providers.Factory(PostRepo, session=relational_db_session)
-    comment_repo = providers.Factory(CommentRepo, session=relational_db_session)
-    user_repo = providers.Factory(UserRepo, session=relational_db_session)
+    post_repo_factory = providers.Factory(PostRepo)
+    comment_repo_factory = providers.Factory(CommentRepo)
+    user_repo_factory = providers.Factory(UserRepo)
 
     ### Unit of Work
     relational_db_uow = providers.Factory(
         AsyncSQLAlchemyUnitOfWork,
-        session=relational_db_session,
         scoped_session=relational_db_scoped_session,
-        post_repo=post_repo,
-        comment_repo=comment_repo,
-        user_repo=user_repo,
+        post_repo_factory=post_repo_factory.provider,
+        comment_repo_factory=comment_repo_factory.provider,
+        user_repo_factory=user_repo_factory.provider,
     )
 
     # Domains
     ## UseCases
-    post_uc = providers.Factory(PostUC, relational_db_post_repo=post_repo)
-    comment_uc = providers.Factory(CommentUC, relational_db_comment_repo=comment_repo)
-    user_uc = providers.Factory(UserUC, relational_db_user_repo=user_repo)
+    post_uc = providers.Factory(PostUC)
+    comment_uc = providers.Factory(CommentUC)
+    user_uc = providers.Factory(UserUC)
     authentication_uc = providers.Factory(
         AuthenticationUC, external_authentication_svc=external_authentication_svc
     )
@@ -138,3 +132,8 @@ class Container(containers.DeclarativeContainer):
 async def initialize_relational_db(container: Container):
     """Initialize the relational database."""
     await container.relational_db().initialize_db(declarative_base=Base)
+
+
+async def close_relational_db(container: Container):
+    """Initialize the relational database."""
+    await container.relational_db().close()
