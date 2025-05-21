@@ -21,6 +21,7 @@ dependencies = [
     "openfga-sdk",
     "ecs_logging",
     "pydantic-settings",
+    "py-consul",
 ]
 
 [tool.uv]

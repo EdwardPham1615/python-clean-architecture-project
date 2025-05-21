@@ -71,6 +71,13 @@ class RelationalDBConfig(BaseModel):
     enable_auto_migrate: bool
 
 
+class CfgManagerConfig(BaseModel):
+    enable: Optional[bool] = False
+    env: str
+    token: str
+    url: str
+
+
 class AppConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file="./config/.env",
@@ -84,6 +91,9 @@ class AppConfig(BaseSettings):
     health_check_http_port: Optional[int] = 5000
     log_level: Optional[str] = "INFO"
     uvicorn_workers: Optional[int] = 1
+
+    # === Config Manager ===
+    cfg_manager_service: CfgManagerConfig
 
     # === Relational DB ===
     relational_db: RelationalDBConfig

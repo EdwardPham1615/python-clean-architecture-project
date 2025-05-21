@@ -689,6 +689,18 @@ wheels = [
 ]
 
 [[package]]
+name = "py-consul"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/00/c2/dbab1b7dc4e09f28001de0785e553caf4ea5844c68e29a08806b26e230c5/py_consul-1.6.0.tar.gz", hash = "sha256:a5ba8347178b0172aa1388e6584ae34ad0d14e22ae7bc8ee53071c24de5c8712", size = 35420 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1b/db/20523e1d191a8199a56167d61c277ec4874abe26ac6c461e6cf166850b12/py_consul-1.6.0-py2.py3-none-any.whl", hash = "sha256:2ffd6b9dd794da99393b75ff78fd786917c3afbfe71ac46292f7099457e68fdf", size = 37245 },
+]
+
+[[package]]
 name = "pycparser"
 version = "2.22"
 source = { registry = "https://pypi.org/simple" }
@@ -786,6 +798,7 @@ dependencies = [
     { name = "openfga-sdk" },
     { name = "orjson" },
     { name = "psycopg2-binary" },
+    { name = "py-consul" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyjwt" },
@@ -811,6 +824,7 @@ requires-dist = [
     { name = "openfga-sdk" },
     { name = "orjson" },
     { name = "psycopg2-binary" },
+    { name = "py-consul" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyjwt" },
