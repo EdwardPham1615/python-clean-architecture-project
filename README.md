@@ -100,6 +100,8 @@ Ensure you have the following installed:
 
 - OpenFGA 1.8.9 (Optional) (Use your own local OpenFGA or you can use my docker-compose.dev.yaml)
 
+- Consul 1.21 (Optional) (Use your own local Consul or you can use my docker-compose.dev.yaml)
+
 - Docker & Docker Compose (Optional)
 
 - make (Optional)
@@ -125,10 +127,12 @@ Ensure you have the following installed:
    # using Alembic (https://alembic.sqlalchemy.org/en/latest/)
 
    # For manually generate migration files base on your need
-   alembic revision -m <name_version>
+   alembic -x sqlalchemy.url=postgresql+asyncpg://<username>:<password>@<ip>:<port>/<db> revision -m <name_version>
 
    # For auto generate migrations files base on your models
-   alembic revision --autogenerate -m <name_version>
+   alembic -x sqlalchemy.url=postgresql+asyncpg://<username>:<password>@<ip>:<port>/<db> revision --autogenerate -m <name_version>
+   
+   # Example: alembic -x sqlalchemy.url=postgresql+asyncpg://cleanarc:cleanarc!123@localhost:5432/cleanarc revision --autogenerate -m "update comments"
    ```
 
 4. **Manage Keycloak and Webhook Config**
@@ -162,13 +166,32 @@ Ensure you have the following installed:
    Step 4: Config token, store_id and authorization_model_id to our app.
    ```
 
-6. **Start the Application**
+6. **Setup Consul**
+
+   ```sh
+   This section is optional and our repo still working without Consul, just use local .env instead !!!
+   
+   Follow the official document of Consul for details (https://developer.hashicorp.com/consul/docs).
+   For basic setup, just follow some simple steps.
+   
+   Step 1: Create a folder in "Key/Value" of Consul and set it to CFG_MANAGER_SERVICE__ENV
+   Step 2: Create every env in .env.example inside the upper folder
+   Step 3: Set CFG_MANAGER_SERVICE__ENABLE=true
+   Step 4: Set CFG_MANAGER_SERVICE__URL and CFG_MANAGER_SERVICE__TOKEN
+   Step 5: Start app
+   
+   Note: Our internal/infrastructures/config_manager including the auto-reload configs function.
+   ```
+
+7. **Start the Application**
 
    ```sh
    python main.py
+   # or
+   ./run.sh
    ```
 
-7. **Alternative run with docker**
+8. **Alternative run with docker**
 
    ```sh
    # if you do not want to start from scratch, just run with docker
@@ -188,7 +211,7 @@ Ensure you have the following installed:
 
    ```
    
-8. **Access the API**
+9. **Access the API**
 
    - Use `http://127.0.0.1:8082/docs` for Swagger UI.
    - Use `http://127.0.0.1:8082/redoc` for Redoc documentation.
