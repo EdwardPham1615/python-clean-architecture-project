@@ -166,4 +166,4 @@ test/
 .secrets.*
 config/settings.local.toml
 
-cleanarc_db_data
+docker_volumes/
