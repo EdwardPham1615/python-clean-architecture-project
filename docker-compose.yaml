@@ -17,7 +17,7 @@ services:
       POSTGRESQL_PASSWORD: "cleanarc!123"
       POSTGRESQL_DATABASE: "cleanarc"
     volumes:
-      - "./cleanarc_db_data:/bitnami/postgresql"
+      - "./docker_volumes/cleanarc_db_data:/bitnami/postgresql"
     restart: always
     logging:
       driver: "json-file"
@@ -117,6 +117,28 @@ services:
       options:
         max-file: "10"
         max-size: 20m
+  clean-arc-config-manager-service:
+    image: hashicorp/consul:1.21
+    container_name: clean-arc-config-manager-service
+    networks:
+      - clean-arc-network
+    volumes:
+      - "./docker_volumes/consul_data:/consul/data"
+    ports:
+      - "8500:8500"     # HTTP API / UI
+      - "8600:8600/udp" # DNS
+      - "8300:8300"     # Server RPC
+      - "8301:8301"     # Serf LAN (communication between agents)
+      - "8301:8301/udp"
+      - "8302:8302"     # Serf WAN (communication across DCs)
+      - "8302:8302/udp"
+    command: agent -server -bootstrap -ui -client=0.0.0.0 -node=consul-server -datacenter=dc1
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: 20m
   clean-arc-be:
     image: python-clean-architecture-be:latest
     container_name: clean-arc-be
@@ -124,6 +146,7 @@ services:
       - clean-arc-relational-db
       - clean-arc-authentication-service
       - clean-arc-authorization-service
+      - clean-arc-config-manager-service
     ports:
       - "8082:8082"
       - "5000:5000"
