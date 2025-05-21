@@ -1,7 +1,7 @@
 from typing import Optional
 
-from dynaconf import Dynaconf
 from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 # We'll use a deferred logger to avoid circular imports
@@ -43,92 +43,71 @@ class DeferredLogger:
 # Create a deferred logger
 logger = DeferredLogger()
 
-# Load settings
-settings = Dynaconf(
-    envvar_prefix="APP",
-    settings_files=["./config/settings.toml", "./config/settings.local.toml"],
-    environments=True,
-)
-
 
 class ReBACAuthorizationServiceConfig(BaseModel):
-    vendor: Optional[str] = Field("openfga", alias="VENDOR")
-    url: str = Field(..., alias="URL")
-    token: str = Field(..., alias="TOKEN")
-    store_id: str = Field(..., alias="STORE_ID")
-    authorization_model_id: str = Field(..., alias="AUTHORIZATION_MODEL_ID")
-    timeout_in_millis: Optional[int] = Field(3000, alias="TIMEOUT_IN_MILLIS")
+    vendor: Optional[str] = Field("openfga")
+    url: str
+    token: str
+    store_id: str
+    authorization_model_id: str
+    timeout_in_millis: Optional[int] = 3000
 
 
 class AuthenticationServiceConfig(BaseModel):
-    vendor: Optional[str] = Field("keycloak", alias="VENDOR")
-    url: str = Field(..., alias="URL")
-    admin_username: str = Field(..., alias="ADMIN_USERNAME")
-    admin_password: str = Field(..., alias="ADMIN_PASSWORD")
-    realm: str = Field(..., alias="REALM")
-    client_id: str = Field(..., alias="CLIENT_ID")
-    client_secret: str = Field(..., alias="CLIENT_SECRET")
-    webhook_secret: str = Field(..., alias="WEBHOOK_SECRET")
+    vendor: Optional[str] = Field("keycloak")
+    url: str
+    admin_username: str
+    admin_password: str
+    realm: str
+    client_id: str
+    client_secret: str
+    webhook_secret: str
 
 
 class RelationalDBConfig(BaseModel):
-    vendor: Optional[str] = Field("postgres", alias="VENDOR")
-    url: str = Field(..., alias="URL")
-    enable_log: bool = Field(..., alias="ENABLE_LOG")
-    enable_auto_migrate: bool = Field(..., alias="ENABLE_AUTO_MIGRATE")
+    vendor: Optional[str] = Field("postgres")
+    url: str
+    enable_log: bool
+    enable_auto_migrate: bool
 
 
-class AppConfig(BaseModel):
-    env_for_dynaconf: Optional[str] = Field("development", alias="ENV_FOR_DYNACONF")
-    main_http_port: Optional[int] = Field(8080, alias="MAIN_HTTP_PORT")
-    health_check_http_port: Optional[int] = Field(5000, alias="HEALTH_CHECK_HTTP_PORT")
-    log_level: Optional[str] = Field("INFO", alias="LOG_LEVEL")
-    uvicorn_workers: Optional[int] = Field(1, alias="UVICORN_WORKERS")
-    # Relational DB configs
-    relational_db: RelationalDBConfig = Field(..., alias="RELATIONAL_DB")
-    # Authentication Service configs
-    authentication_service: AuthenticationServiceConfig = Field(
-        ..., alias="AUTHENTICATION_SERVICE"
+class CfgManagerConfig(BaseModel):
+    enable: Optional[bool] = False
+    env: str
+    token: str
+    url: str
+
+
+class AppConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file="./config/.env",
+        env_nested_delimiter="__",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
-    # ReBAC Authorization Service configs
-    rebac_authorization_service: ReBACAuthorizationServiceConfig = Field(
-        ..., alias="REBAC_AUTHORIZATION_SERVICE"
-    )
+
+    # === General App Settings ===
+    main_http_port: Optional[int] = 8080
+    health_check_http_port: Optional[int] = 5000
+    log_level: Optional[str] = "INFO"
+    uvicorn_workers: Optional[int] = 1
+
+    # === Config Manager ===
+    cfg_manager_service: CfgManagerConfig
+
+    # === Relational DB ===
+    relational_db: RelationalDBConfig
+
+    # === Authentication Service ===
+    authentication_service: AuthenticationServiceConfig
+
+    # === ReBAC Authorization Service ===
+    rebac_authorization_service: ReBACAuthorizationServiceConfig
 
 
 # Load and validate configuration
 try:
-    app_config = AppConfig(
-        ENV_FOR_DYNACONF=settings.ENV_FOR_DYNACONF,
-        MAIN_HTTP_PORT=settings.MAIN_HTTP_PORT,
-        HEALTH_CHECK_HTTP_PORT=settings.HEALTH_CHECK_HTTP_PORT,
-        LOG_LEVEL=settings.LOG_LEVEL,
-        UVICORN_WORKERS=settings.UVICORN_WORKERS,
-        RELATIONAL_DB=RelationalDBConfig(
-            VENDOR=settings.RELATIONAL_DB.VENDOR,
-            URL=settings.RELATIONAL_DB.URL,
-            ENABLE_LOG=settings.RELATIONAL_DB.ENABLE_LOG,
-            ENABLE_AUTO_MIGRATE=settings.RELATIONAL_DB.ENABLE_AUTO_MIGRATE,
-        ),
-        AUTHENTICATION_SERVICE=AuthenticationServiceConfig(
-            VENDOR=settings.AUTHENTICATION_SERVICE.VENDOR,
-            URL=settings.AUTHENTICATION_SERVICE.URL,
-            ADMIN_USERNAME=settings.AUTHENTICATION_SERVICE.ADMIN_USERNAME,
-            ADMIN_PASSWORD=settings.AUTHENTICATION_SERVICE.ADMIN_PASSWORD,
-            REALM=settings.AUTHENTICATION_SERVICE.REALM,
-            CLIENT_ID=settings.AUTHENTICATION_SERVICE.CLIENT_ID,
-            CLIENT_SECRET=settings.AUTHENTICATION_SERVICE.CLIENT_SECRET,
-            WEBHOOK_SECRET=settings.AUTHENTICATION_SERVICE.WEBHOOK_SECRET,
-        ),
-        REBAC_AUTHORIZATION_SERVICE=ReBACAuthorizationServiceConfig(
-            VENDOR=settings.REBAC_AUTHORIZATION_SERVICE.VENDOR,
-            URL=settings.REBAC_AUTHORIZATION_SERVICE.URL,
-            TOKEN=settings.REBAC_AUTHORIZATION_SERVICE.TOKEN,
-            STORE_ID=settings.REBAC_AUTHORIZATION_SERVICE.STORE_ID,
-            AUTHORIZATION_MODEL_ID=settings.REBAC_AUTHORIZATION_SERVICE.AUTHORIZATION_MODEL_ID,
-            TIMEOUT_IN_MILLIS=settings.REBAC_AUTHORIZATION_SERVICE.TIMEOUT_IN_MILLIS,
-        ),
-    )
+    app_config = AppConfig()
     logger.info("Configuration loaded successfully!")
 except Exception as exc:
     logger.error(f"Configuration validation error: {exc}")

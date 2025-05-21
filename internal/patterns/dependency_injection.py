@@ -1,6 +1,5 @@
 from dependency_injector import containers, providers
 
-from config import app_config
 from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
 from internal.domains.usecases import (
     AuthenticationUC,
@@ -36,13 +35,15 @@ class Container(containers.DeclarativeContainer):
         ]
     )
 
+    config = providers.Configuration()
+
     # Infrastructures
     ## Relational DB
     relational_db = providers.Resource(
         Database,
-        db_url=app_config.relational_db.url,
-        enable_log=app_config.relational_db.enable_log,
-        enable_migrations=app_config.relational_db.enable_auto_migrate,
+        db_url=config.relational_db.url,
+        enable_log=config.relational_db.enable_log,
+        enable_migrations=config.relational_db.enable_auto_migrate,
     )
 
     relational_db_scoped_session = providers.Resource(
@@ -52,23 +53,23 @@ class Container(containers.DeclarativeContainer):
     ## External Authentication Service
     external_authentication_svc = providers.Resource(
         ExternalAuthenticationServiceClient,
-        url=app_config.authentication_service.url,
-        admin_username=app_config.authentication_service.admin_username,
-        admin_password=app_config.authentication_service.admin_password,
-        realm=app_config.authentication_service.realm,
-        client_id=app_config.authentication_service.client_id,
-        client_secret=app_config.authentication_service.client_secret,
-        webhook_secret=app_config.authentication_service.webhook_secret,
+        url=config.authentication_service.url,
+        admin_username=config.authentication_service.admin_username,
+        admin_password=config.authentication_service.admin_password,
+        realm=config.authentication_service.realm,
+        client_id=config.authentication_service.client_id,
+        client_secret=config.authentication_service.client_secret,
+        webhook_secret=config.authentication_service.webhook_secret,
     )
 
     ## External ReBAC Authorization Service
     external_rebac_authorization_svc = providers.Resource(
         ExternalReBACAuthorizationServiceClient,
-        url=app_config.rebac_authorization_service.url,
-        api_token=app_config.rebac_authorization_service.token,
-        store_id=app_config.rebac_authorization_service.store_id,
-        authorization_model_id=app_config.rebac_authorization_service.authorization_model_id,
-        timeout_in_millis=app_config.rebac_authorization_service.timeout_in_millis,
+        url=config.rebac_authorization_service.url,
+        api_token=config.rebac_authorization_service.token,
+        store_id=config.rebac_authorization_service.store_id,
+        authorization_model_id=config.rebac_authorization_service.authorization_model_id,
+        timeout_in_millis=config.rebac_authorization_service.timeout_in_millis,
     )
 
     ### Repositories
