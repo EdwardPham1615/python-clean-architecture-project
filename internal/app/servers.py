@@ -6,9 +6,11 @@ from fastapi.responses import ORJSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from config import app_config
 from internal.app import JWTAuthMiddleware
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
+from internal.infrastructures.config_manager import ConfigManager
 from internal.patterns import Container, initialize_relational_db
 from internal.patterns.dependency_injection import close_relational_db
 from utils.logger_utils import get_shared_logger
@@ -24,6 +26,22 @@ def init_http_server() -> FastAPI:
         try:
             # Get the container instance
             container = Container()
+
+            # Load config from the config manager
+            if app_config.cfg_manager_service.enable:
+                cfg_manager = ConfigManager(
+                    address=app_config.cfg_manager_service.url,
+                    token=app_config.cfg_manager_service.token,
+                    env=app_config.cfg_manager_service.env,
+                    app_config=app_config,
+                    di_container=container,
+                )
+                await cfg_manager.load()
+                await cfg_manager.update_app_config()
+                logger.info(f"Load config from server successfully")
+            else:
+                container.config.from_dict(app_config.model_dump())
+                logger.info(f"Load config from local successfully")
 
             # Initialize relational database
             await initialize_relational_db(container=container)
