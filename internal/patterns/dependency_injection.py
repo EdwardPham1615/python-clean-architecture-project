@@ -44,6 +44,7 @@ class Container(containers.DeclarativeContainer):
         db_url=config.relational_db.url,
         enable_log=config.relational_db.enable_log,
         enable_migrations=config.relational_db.enable_auto_migrate,
+        isolation_level=config.relational_db.isolation_level,
     )
 
     relational_db_scoped_session = providers.Resource(

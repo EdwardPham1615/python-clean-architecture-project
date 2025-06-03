@@ -69,6 +69,9 @@ class RelationalDBConfig(BaseModel):
     url: str
     enable_log: bool
     enable_auto_migrate: bool
+    isolation_level: Optional[str] = (
+        "SERIALIZABLE"  # "READ UNCOMMITTED”, “READ COMMITTED”, “REPEATABLE READ”, “SERIALIZABLE”
+    )
 
 
 class CfgManagerConfig(BaseModel):

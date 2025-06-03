@@ -19,7 +19,11 @@ logger = get_shared_logger()
 
 class PostgresDatabase:
     def __init__(
-        self, db_url: str, enable_log: bool = True, enable_migrations: bool = True
+        self,
+        db_url: str,
+        enable_log: bool = True,
+        enable_migrations: bool = True,
+        isolation_level: str = "SERIALIZABLE",
     ):
         self._db_url = db_url
         self._enable_log = enable_log
@@ -27,7 +31,7 @@ class PostgresDatabase:
         self._engine = create_async_engine(
             url=self._db_url,
             echo=self._enable_log,
-            isolation_level="SERIALIZABLE",
+            isolation_level=isolation_level,
         )
 
         self._session_factory = async_sessionmaker(
