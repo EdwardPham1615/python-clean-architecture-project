@@ -22,6 +22,7 @@ dependencies = [
     "ecs_logging",
     "pydantic-settings",
     "py-consul",
+    "tenacity",
 ]
 
 [tool.uv]
