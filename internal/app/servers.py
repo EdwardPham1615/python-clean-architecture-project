@@ -1,3 +1,4 @@
+import grpc
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
@@ -7,7 +8,8 @@ from starlette.requests import Request
 from internal.app import JWTAuthMiddleware
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
-from utils.logger_utils import get_shared_logger
+from internal.patterns import Container
+from utils.logger_utils import GRPCLoggingInterceptor, get_shared_logger
 
 logger = get_shared_logger()
 
@@ -61,3 +63,17 @@ def init_health_check_server(app_status: DataResponse) -> FastAPI:
         )
 
     return health_check_app
+
+
+def init_grpc_server(container: Container) -> grpc.aio.Server:
+    logging_interceptor = GRPCLoggingInterceptor()
+    server = grpc.aio.server(interceptors=[logging_interceptor])
+
+    # Instantiate your service
+    # TODO: implement a gRPC service
+
+    # Add your service to the gRPC server
+    # TODO: add a gRPC service to gRPC server
+
+    logger.info("gRPC server initialized")
+    return server

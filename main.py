@@ -1,11 +1,12 @@
 import asyncio
 from contextlib import asynccontextmanager
 
+import grpc
 import uvicorn
 
 from config import app_config
 from config import logger as deferred_logger
-from internal.app import init_health_check_server, init_http_server
+from internal.app import init_grpc_server, init_health_check_server, init_http_server
 from internal.controllers.responses import DataResponse
 from internal.controllers.responses.error_code import common_internal_error
 from internal.controllers.responses.success_code import server_ok
@@ -84,6 +85,24 @@ async def serve_http(app: uvicorn.Config, app_status: DataResponse):
         app_status.message = common_internal_error
 
 
+async def serve_grpc(server: grpc.aio.Server, app_status: DataResponse):
+    try:
+        listen_addr = f"0.0.0.0:{app_config.main_grpc_port}"
+        server.add_insecure_port(address=listen_addr)
+        logger.info(f"Starting gRPC server on {listen_addr}")
+        await server.start()
+        # This will wait until the server is stopped or the task is canceled.
+        await server.wait_for_termination()
+    except Exception as exc:
+        logger.opt(exception=True).critical(f"gRPC server crashed unexpectedly: {exc}")
+        app_status.message = common_internal_error
+    finally:
+        logger.info("Shutting down gRPC server...")
+        # It gracefully stops the server. The '1' is a grace period in seconds.
+        await server.stop(1)
+        logger.info("gRPC server shut down.")
+
+
 async def main():
     """Main entry point for the application."""
     app_status = DataResponse(message=server_ok)
@@ -115,10 +134,15 @@ async def main():
                 log_config=None,
             )
 
+            # --- gRPC Server ---
+            # Get the gRPC service with all dependencies injected from the container
+            grpc_server_instance = init_grpc_server(container=container)
+
             # --- Run all servers concurrently ---
             await asyncio.gather(
                 serve_http(app=http_config, app_status=app_status),
                 serve_http(app=health_config, app_status=app_status),
+                serve_grpc(server=grpc_server_instance, app_status=app_status),
             )
     except Exception as exc:
         logger.opt(exception=True).critical(
