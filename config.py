@@ -92,6 +92,7 @@ class AppConfig(BaseSettings):
     # === General App Settings ===
     main_http_port: Optional[int] = 8080
     health_check_http_port: Optional[int] = 5000
+    main_grpc_port: Optional[int] = 9090
     log_level: Optional[str] = "INFO"
     uvicorn_workers: Optional[int] = 1
 
