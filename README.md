@@ -67,6 +67,7 @@ The **Unit of Work pattern** ensures that multiple repository operations are **e
 
 ```
 internal/
+│── app/              # Defines servers and middlewares (protocols)
 │── controllers/      # Handles requests and responses (endpoints)
 │── domains/          # Core business logic (services, use cases, entities)
 │── infrastructures/  # External dependencies (databases, caches, queues)
@@ -74,6 +75,7 @@ internal/
 └── main.py           # Application entry point
 ```
 
+- **App**: Define servers (protocols) and middlewares.
 - **Controllers**: Define the API endpoints and route requests to services.
 - **Domains**: Contains core business logic, including services and use cases.
 - **Infrastructures**: Houses repositories and database interactions.
