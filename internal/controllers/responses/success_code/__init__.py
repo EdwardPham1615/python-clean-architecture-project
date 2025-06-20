@@ -5,6 +5,7 @@ from .comment import (
     get_comment_success,
     update_comment_success,
 )
+from .common import server_ok
 from .post import (
     create_post_success,
     delete_post_success,
