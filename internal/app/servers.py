@@ -6,6 +6,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 from internal.app import JWTAuthMiddleware
+from internal.controllers.grpc.protos import post_v1_pb2_grpc
+from internal.controllers.grpc.v1.endpoints import PostPRouter as PostPRouterV1
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
 from internal.patterns import Container
@@ -70,10 +72,10 @@ def init_grpc_server(container: Container) -> grpc.aio.Server:
     server = grpc.aio.server(interceptors=[logging_interceptor])
 
     # Instantiate your service
-    # TODO: implement a gRPC service
+    post_p_router_v1 = PostPRouterV1(container=container)
 
     # Add your service to the gRPC server
-    # TODO: add a gRPC service to gRPC server
+    post_v1_pb2_grpc.add_PostV1Servicer_to_server(post_p_router_v1, server)
 
     logger.info("gRPC server initialized")
     return server
