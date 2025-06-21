@@ -1,5 +1,6 @@
 from dependency_injector import containers, providers
 
+from config import AppConfig
 from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
 from internal.domains.usecases import (
     AuthenticationUC,
@@ -25,17 +26,7 @@ from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitO
 
 
 class Container(containers.DeclarativeContainer):
-    wiring_config = containers.WiringConfiguration(
-        modules=[
-            __name__,
-            "internal.controllers.http.v1.endpoints.post",
-            "internal.controllers.http.v1.endpoints.comment",
-            "internal.controllers.http.v1.endpoints.authentication",
-            "internal.app.middlewares",
-        ]
-    )
-
-    config = providers.Configuration()
+    config: AppConfig = providers.Configuration()
 
     # Infrastructures
     ## Relational DB

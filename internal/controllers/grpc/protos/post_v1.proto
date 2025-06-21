@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+// Defines a package for the protocol buffer messages to prevent name clashes.
+// It's good practice to include a version number (e.g., v1).
+
+service PostV1 {
+  rpc Create (CreatePostRequest) returns (CreatePostResponse) {}
+  rpc GetById (GetPostByIdRequest) returns (GetPostByIdResponse) {}
+}
+
+message CreatePostRequest {
+  string text_content = 1;
+  string owner_id = 2;
+}
+
+message CreatePostResponse {
+  string id = 1;
+}
+
+message GetPostByIdRequest {
+  string id = 1;
+}
+
+message GetPostByIdResponse {
+  string id = 1;
+  string text_content = 2;
+  string created_at = 3;
+  string updated_at = 4;
+}

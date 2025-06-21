@@ -1,64 +1,23 @@
-from contextlib import asynccontextmanager
-
+import grpc
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
-from config import app_config
 from internal.app import JWTAuthMiddleware
+from internal.controllers.grpc.protos import post_v1_pb2_grpc
+from internal.controllers.grpc.v1.endpoints import PostPRouter as PostPRouterV1
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
-from internal.infrastructures.config_manager import ConfigManager
-from internal.patterns import Container, initialize_relational_db
-from internal.patterns.dependency_injection import close_relational_db
-from utils.logger_utils import get_shared_logger
+from internal.patterns import Container
+from utils.logger_utils import GRPCLoggingInterceptor, get_shared_logger
 
 logger = get_shared_logger()
 
-app_status = {"alive": True, "status_code": 200, "message": "I'm fine"}
-
 
 def init_http_server() -> FastAPI:
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        try:
-            # Get the container instance
-            container = Container()
-
-            # Load config from the config manager
-            if app_config.cfg_manager_service.enable:
-                cfg_manager = ConfigManager(
-                    address=app_config.cfg_manager_service.url,
-                    token=app_config.cfg_manager_service.token,
-                    env=app_config.cfg_manager_service.env,
-                    app_config=app_config,
-                    di_container=container,
-                )
-                await cfg_manager.load()
-                await cfg_manager.update_app_config()
-                logger.info(f"Load config from server successfully")
-            else:
-                container.config.from_dict(app_config.model_dump())
-                logger.info(f"Load config from local successfully")
-
-            # Initialize relational database
-            await initialize_relational_db(container=container)
-            logger.info("Relational database initialized")
-
-            yield
-
-            # Close relational database
-            await close_relational_db(container=container)
-            logger.info("Relational database closed")
-        except Exception as exc:
-            logger.error(f"Main HTTP server crashed due to: {exc}")
-            app_status["alive"] = False
-            app_status["status_code"] = 500
-            app_status["message"] = str(exc)
-
-    server_ = FastAPI(default_response_class=ORJSONResponse, lifespan=lifespan)
+    server_ = FastAPI(default_response_class=ORJSONResponse)
 
     server_.add_middleware(
         middleware_class=CORSMiddleware,
@@ -95,13 +54,28 @@ def init_http_server() -> FastAPI:
     return server_
 
 
-def init_health_check_server() -> FastAPI:
+def init_health_check_server(app_status: DataResponse) -> FastAPI:
     health_check_app = FastAPI()
 
     @health_check_app.get("/health-check")
     async def health_check():
-        if app_status["status_code"] != 200:
-            logger.info(app_status)
-        return ORJSONResponse(content=app_status, status_code=app_status["status_code"])
+        return ORJSONResponse(
+            content=jsonable_encoder(app_status),
+            status_code=app_status.message.status_code,
+        )
 
     return health_check_app
+
+
+def init_grpc_server(container: Container) -> grpc.aio.Server:
+    logging_interceptor = GRPCLoggingInterceptor()
+    server = grpc.aio.server(interceptors=[logging_interceptor])
+
+    # Instantiate your service
+    post_p_router_v1 = PostPRouterV1(container=container)
+
+    # Add your service to the gRPC server
+    post_v1_pb2_grpc.add_PostV1Servicer_to_server(post_p_router_v1, server)
+
+    logger.info("gRPC server initialized")
+    return server

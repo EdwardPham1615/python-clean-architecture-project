@@ -23,6 +23,7 @@ dependencies = [
     "pydantic-settings",
     "py-consul",
     "tenacity",
+    "grpcio-tools",
 ]
 
 [tool.uv]

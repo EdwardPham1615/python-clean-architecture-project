@@ -1,10 +1,12 @@
 import json
 import logging
 import sys
+import time
 import warnings
 from datetime import datetime, timezone
 
 import ecs_logging
+import grpc
 from loguru import logger
 
 # Import app_config after patching loguru
@@ -77,6 +79,59 @@ class ECSLogSink:
         json_line = json.dumps(ecs_dict) + "\n"
         self.sink.write(json_line)
         self.sink.flush()
+
+
+# --- gRPC Logging Interceptor ---
+class GRPCLoggingInterceptor(grpc.aio.ServerInterceptor):
+    """
+    A gRPC server interceptor that logs incoming requests and their outcomes.
+    """
+
+    async def intercept_service(
+        self,
+        continuation: callable,
+        handler_call_details: grpc.HandlerCallDetails,
+    ) -> grpc.RpcMethodHandler:
+        handler = await continuation(handler_call_details)
+        method_name = handler_call_details.method
+
+        if not handler or not handler.unary_unary:
+            return handler
+
+        async def logging_wrapper(request, context: grpc.aio.ServicerContext):
+            start_time = time.perf_counter()
+
+            logger.info(
+                f"gRPC Request started: Method='{method_name}' Peer='{context.peer()}'"
+            )
+            logger.debug(f"Request Data: {request}")
+
+            try:
+                response = await handler.unary_unary(request, context)
+                duration = time.perf_counter() - start_time
+                logger.info(
+                    f"gRPC Request finished: Method='{method_name}' Duration={duration:.4f}s Status='{grpc.StatusCode.OK.name}'"
+                )
+                return response
+
+            except Exception as exc:
+                duration = time.perf_counter() - start_time
+
+                details = str(exc)
+
+                # Log the failure with the correct, translated status code.
+                logger.error(
+                    f"gRPC Request finished with error: Method='{method_name}' Duration={duration:.4f}s Status='{grpc.StatusCode.INTERNAL.name}' Details='{details}'"
+                )
+
+                # Abort the RPC, sending the translated status to the client.
+                await context.abort(code=grpc.StatusCode.INTERNAL, details=details)
+
+        return grpc.unary_unary_rpc_method_handler(
+            logging_wrapper,
+            request_deserializer=handler.request_deserializer,
+            response_serializer=handler.response_serializer,
+        )
 
 
 def configure_logger():

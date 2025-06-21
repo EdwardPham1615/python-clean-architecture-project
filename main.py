@@ -1,10 +1,18 @@
 import asyncio
+from contextlib import asynccontextmanager
 
+import grpc
 import uvicorn
 
 from config import app_config
 from config import logger as deferred_logger
-from internal.app import init_health_check_server, init_http_server
+from internal.app import init_grpc_server, init_health_check_server, init_http_server
+from internal.controllers.responses import DataResponse
+from internal.controllers.responses.error_code import common_internal_error
+from internal.controllers.responses.success_code import server_ok
+from internal.infrastructures.config_manager import ConfigManager
+from internal.patterns import Container, initialize_relational_db
+from internal.patterns.dependency_injection import close_relational_db
 from utils.logger_utils import get_shared_logger
 
 # Get the configured logger
@@ -14,42 +22,136 @@ logger = get_shared_logger()
 deferred_logger.set_real_logger(logger)
 
 
-http_server_ = init_http_server()
+@asynccontextmanager
+async def app_lifespan(app_status: DataResponse):
+    """
+    Manages the application's lifecycle, including the DI container and database connections.
+    """
+
+    # Get the container instance
+    container = Container()
+    try:
+        # Load config from the config manager
+        if app_config.cfg_manager_service.enable:
+            cfg_manager = ConfigManager(
+                address=app_config.cfg_manager_service.url,
+                token=app_config.cfg_manager_service.token,
+                env=app_config.cfg_manager_service.env,
+                app_config=app_config,
+                di_container=container,
+            )
+            await cfg_manager.load()
+            await cfg_manager.update_app_config()
+            logger.info(f"Load config from server successfully")
+        else:
+            container.config.from_dict(app_config.model_dump())
+            logger.info(f"Load config from local successfully")
+
+        # Wire the container to all necessary modules
+        container.wire(
+            modules=[
+                __name__,
+                "internal.controllers.http.v1.endpoints.post",
+                "internal.controllers.http.v1.endpoints.comment",
+                "internal.controllers.http.v1.endpoints.authentication",
+                "internal.app.middlewares",
+            ]
+        )
+        logger.info("Container wiring complete.")
+
+        # Initialize relational database
+        await initialize_relational_db(container=container)
+        logger.info("Relational database initialized")
+
+        yield container
+
+    except Exception as exc:
+        logger.opt(exception=True).error(f"App lifespan crashed unexpectedly: {exc}")
+        app_status.message = common_internal_error
+    finally:
+        # Cleanup resources
+        await close_relational_db(container=container)
+        logger.info("Relational database closed.")
+        container.unwire()
+        logger.info("Container unwired.")
 
 
-async def main_http_server():
-    config = uvicorn.Config(
-        app="main:http_server_",
-        host="0.0.0.0",
-        port=app_config.main_http_port,
-        log_level=app_config.log_level.lower(),
-        log_config=None,  # Disable Uvicorn's logging configuration
-        workers=app_config.uvicorn_workers,
-    )
-    server = uvicorn.Server(config)
-    await server.serve()
+async def serve_http(app: uvicorn.Config, app_status: DataResponse):
+    server_ = uvicorn.Server(config=app)
+    try:
+        await server_.serve()
+    except Exception as exc:
+        logger.opt(exception=True).critical(f"HTTP server crashed unexpectedly: {exc}")
+        app_status.message = common_internal_error
 
 
-health_check_server_ = init_health_check_server()
-
-
-async def main_health_check_server():
-    config = uvicorn.Config(
-        app="main:health_check_server_",
-        host="0.0.0.0",
-        port=app_config.health_check_http_port,
-        log_level=app_config.log_level.lower(),
-        log_config=None,  # Disable Uvicorn's logging configuration
-        workers=app_config.uvicorn_workers,
-    )
-    server = uvicorn.Server(config)
-    await server.serve()
+async def serve_grpc(server: grpc.aio.Server, app_status: DataResponse):
+    try:
+        listen_addr = f"0.0.0.0:{app_config.main_grpc_port}"
+        server.add_insecure_port(address=listen_addr)
+        logger.info(f"Starting gRPC server on {listen_addr}")
+        await server.start()
+        # This will wait until the server is stopped or the task is canceled.
+        await server.wait_for_termination()
+    except Exception as exc:
+        logger.opt(exception=True).critical(f"gRPC server crashed unexpectedly: {exc}")
+        app_status.message = common_internal_error
+    finally:
+        logger.info("Shutting down gRPC server...")
+        # It gracefully stops the server. The '1' is a grace period in seconds.
+        await server.stop(1)
+        logger.info("gRPC server shut down.")
 
 
 async def main():
     """Main entry point for the application."""
-    await asyncio.gather(main_health_check_server(), main_http_server())
+    app_status = DataResponse(message=server_ok)
+
+    try:
+        async with app_lifespan(app_status=app_status) as container:
+            if not container:
+                raise RuntimeError(
+                    "DI container was not provided by the lifespan manager."
+                )
+
+            # --- HTTP Server ---
+            http_app = init_http_server()
+            http_config = uvicorn.Config(
+                app=http_app,
+                host="0.0.0.0",
+                port=app_config.main_http_port,
+                log_level=app_config.log_level.lower(),
+                log_config=None,
+            )
+
+            # --- Health Check Server ---
+            health_app = init_health_check_server(app_status=app_status)
+            health_config = uvicorn.Config(
+                app=health_app,
+                host="0.0.0.0",
+                port=app_config.health_check_http_port,
+                log_level=app_config.log_level.lower(),
+                log_config=None,
+            )
+
+            # --- gRPC Server ---
+            # Get the gRPC service with all dependencies injected from the container
+            grpc_server_instance = init_grpc_server(container=container)
+
+            # --- Run all servers concurrently ---
+            await asyncio.gather(
+                serve_http(app=http_config, app_status=app_status),
+                serve_http(app=health_config, app_status=app_status),
+                serve_grpc(server=grpc_server_instance, app_status=app_status),
+            )
+    except Exception as exc:
+        logger.opt(exception=True).critical(
+            f"Application could not start or has crashed due to: {exc}"
+        )
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Application shut down by user.")
