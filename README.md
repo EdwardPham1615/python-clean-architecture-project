@@ -185,7 +185,20 @@ Ensure you have the following installed:
    Note: Our internal/infrastructures/config_manager including the auto-reload configs function.
    ```
 
-7. **Start the Application**
+7. **Manage proto files**
+
+   ```sh
+   This section is optional if you want to develop service with gRPC.
+   
+   Every proto files are stored at "internal/controllers/grpc/protos"
+   
+   Use the following command if you want to generate new proto:
+   
+   # gen-proto
+   make gen-proto
+   ```
+
+8. **Start the Application**
 
    ```sh
    python main.py
@@ -193,7 +206,7 @@ Ensure you have the following installed:
    ./run.sh
    ```
 
-8. **Alternative run with docker**
+9. **Alternative run with docker**
 
    ```sh
    # if you do not want to start from scratch, just run with docker
@@ -213,7 +226,7 @@ Ensure you have the following installed:
 
    ```
    
-9. **Access the API**
+10. **Access the API**
 
    - Use `http://127.0.0.1:8082/docs` for Swagger UI.
    - Use `http://127.0.0.1:8082/redoc` for Redoc documentation.
