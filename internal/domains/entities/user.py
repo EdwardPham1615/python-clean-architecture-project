@@ -39,21 +39,21 @@ class CreateUserPayload(BaseModel):
             try:
                 UUID4(self.id_)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.created_at:
             try:
                 from_str_to_dt(
                     str_time=self.created_at, format_=DATETIME_DEFAULT_FORMAT
                 )
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.updated_at:
             try:
                 from_str_to_dt(
                     str_time=self.updated_at, format_=DATETIME_DEFAULT_FORMAT
                 )
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
 
 
 class UpdateUserPayload(BaseModel):
@@ -66,11 +66,11 @@ class UpdateUserPayload(BaseModel):
             try:
                 UUID4(self.id_)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.updated_at:
             try:
                 from_str_to_dt(
                     str_time=self.updated_at, format_=DATETIME_DEFAULT_FORMAT
                 )
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))

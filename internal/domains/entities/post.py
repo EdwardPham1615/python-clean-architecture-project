@@ -33,25 +33,25 @@ class GetMultiPostsFilter(BaseModel):
     def validate_(self):
         if self.sort_order:
             if self.sort_order not in ["DESC", "ASC"]:
-                raise ValidationError(f"Invalid sort order: {self.sort_order}")
+                raise ValueError(f"Invalid sort order: {self.sort_order}")
 
         if self.from_date:
             try:
                 from_str_to_dt(str_time=self.from_date, format_=DATETIME_DEFAULT_FORMAT)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
 
         if self.to_date:
             try:
                 from_str_to_dt(str_time=self.to_date, format_=DATETIME_DEFAULT_FORMAT)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
 
         if self.owner_id:
             try:
                 UUID4(self.owner_id)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
 
 
 class CreatePostPayload(BaseModel):
@@ -66,26 +66,26 @@ class CreatePostPayload(BaseModel):
             try:
                 UUID4(self.id_)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.created_at:
             try:
                 from_str_to_dt(
                     str_time=self.created_at, format_=DATETIME_DEFAULT_FORMAT
                 )
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.updated_at:
             try:
                 from_str_to_dt(
                     str_time=self.updated_at, format_=DATETIME_DEFAULT_FORMAT
                 )
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.owner_id:
             try:
                 UUID4(self.owner_id)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
 
 
 class UpdatePostPayload(BaseModel):
@@ -99,19 +99,19 @@ class UpdatePostPayload(BaseModel):
             try:
                 UUID4(self.id_)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.updated_at:
             try:
                 from_str_to_dt(
                     str_time=self.updated_at, format_=DATETIME_DEFAULT_FORMAT
                 )
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.owner_id:
             try:
                 UUID4(self.owner_id)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
 
 
 class DeletePostPayload(BaseModel):
@@ -123,9 +123,9 @@ class DeletePostPayload(BaseModel):
             try:
                 UUID4(self.id_)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
         if self.owner_id:
             try:
                 UUID4(self.owner_id)
             except Exception as exc:
-                raise ValidationError(exc)
+                raise ValueError(str(exc))
