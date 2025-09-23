@@ -26,10 +26,11 @@ dependencies = [
     "grpcio-tools",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "ruff",
-    "isort"
+    "isort",
+    "pytest",
 ]
 
 [tool.ruff]
