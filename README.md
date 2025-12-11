@@ -34,6 +34,8 @@ By following Clean Architecture, this project ensures that the core business log
 ├──────────────────────────────┤
 │          Use Cases          │  → Encapsulates core business logic
 ├──────────────────────────────┤
+│         Repositories        │  → Acts as an adapter that decouples the business layer from the infrastructure
+├──────────────────────────────┤
 │ Infrastructures (DB, Cache) │  → Handles external dependencies like databases & queues
 └──────────────────────────────┘
 ```
@@ -69,16 +71,16 @@ The **Unit of Work pattern** ensures that multiple repository operations are **e
 internal/
 │── app/              # Defines servers and middlewares (protocols)
 │── controllers/      # Handles requests and responses (endpoints)
-│── domains/          # Core business logic (services, use cases, entities)
+│── domains/          # Core business logic (services, use cases, entities, repositories)
 │── infrastructures/  # External dependencies (databases, caches, queues)
-│── patterns/         # Dependency injection
+│── patterns/         # Dependency injection, Unit Of Work
 └── main.py           # Application entry point
 ```
 
 - **App**: Define servers (protocols) and middlewares.
 - **Controllers**: Define the API endpoints and route requests to services.
-- **Domains**: Contains core business logic, including services and use cases.
-- **Infrastructures**: Houses repositories and database interactions.
+- **Domains**: Contains core business logic, including services, use cases, and repositories.
+- **Infrastructures**: Database interactions, other third-party services.
 - **Patterns**: Implements design patterns like Dependency Injection and Unit of Work.
 - **Main.py**: Initializes the application, including dependency injection and routing setup.
 
