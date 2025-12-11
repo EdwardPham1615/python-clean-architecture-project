@@ -25,9 +25,7 @@ from internal.domains.usecases.abstraction import (
     AbstractCommentUC,
     AbstractUserUC,
 )
-from internal.infrastructures.relational_db.patterns import (
-    AbstractUnitOfWork as RelationalDBUnitOfWork,
-)
+from internal.patterns import AbstractUnitOfWork as RelationalDBUnitOfWork
 from utils.logger_utils import get_shared_logger
 
 logger = get_shared_logger()

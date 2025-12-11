@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
 from config import AppConfig
+from internal.domains.repositories import CommentRepo, PostRepo, UserRepo
 from internal.domains.services import AuthenticationSVC, CommentSVC, PostSVC, UserSVC
 from internal.domains.usecases import (
     AuthenticationUC,
@@ -15,14 +16,9 @@ from internal.infrastructures.external_authentication_service import (
 from internal.infrastructures.external_rebac_authorization_service import (
     ExternalReBACAuthorizationServiceClient,
 )
-from internal.infrastructures.relational_db import (
-    CommentRepo,
-    Database,
-    PostRepo,
-    UserRepo,
-)
+from internal.infrastructures.relational_db import Database
 from internal.infrastructures.relational_db.base import Base
-from internal.infrastructures.relational_db.patterns import AsyncSQLAlchemyUnitOfWork
+from internal.patterns import AsyncSQLAlchemyUnitOfWork
 
 
 class Container(containers.DeclarativeContainer):

@@ -18,8 +18,8 @@ from tenacity import (
     wait_exponential,
 )
 
-from internal.infrastructures.relational_db import CommentRepo, PostRepo, UserRepo
-from internal.infrastructures.relational_db.abstraction import (
+from internal.domains.repositories import CommentRepo, PostRepo, UserRepo
+from internal.domains.repositories.abstraction import (
     AbstractCommentRepo,
     AbstractPostRepo,
     AbstractUserRepo,

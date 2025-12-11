@@ -5,7 +5,7 @@ from sqlalchemy import UnaryExpression, asc, delete, desc, func, insert, select,
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from internal.domains.entities import CommentEntity, GetMultiCommentsFilter
-from internal.infrastructures.relational_db.abstraction import AbstractCommentRepo
+from internal.domains.repositories.abstraction.comment import AbstractCommentRepo
 from internal.infrastructures.relational_db.postgres.models import (
     Comment,
     CommentModelMapper,

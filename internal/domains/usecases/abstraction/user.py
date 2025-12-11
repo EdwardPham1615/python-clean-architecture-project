@@ -2,9 +2,7 @@ import abc
 from typing import Optional
 
 from internal.domains.entities import CreateUserPayload, UpdateUserPayload, UserEntity
-from internal.infrastructures.relational_db.patterns import (
-    AbstractUnitOfWork as RelationalDBUnitOfWork,
-)
+from internal.patterns import AbstractUnitOfWork as RelationalDBUnitOfWork
 
 
 class AbstractUserUC(abc.ABC):
