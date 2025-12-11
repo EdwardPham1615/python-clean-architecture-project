@@ -8,9 +8,7 @@ from internal.domains.entities import (
     PostEntity,
     UpdatePostPayload,
 )
-from internal.infrastructures.relational_db.patterns import (
-    AbstractUnitOfWork as RelationalDBUnitOfWork,
-)
+from internal.patterns import AbstractUnitOfWork as RelationalDBUnitOfWork
 
 
 class AbstractPostUC(abc.ABC):

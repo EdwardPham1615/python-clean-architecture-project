@@ -17,9 +17,7 @@ from internal.domains.usecases.abstraction import (
     AbstractAuthenticationUC,
     AbstractUserUC,
 )
-from internal.infrastructures.relational_db.patterns import (
-    AbstractUnitOfWork as RelationalDBUnitOfWork,
-)
+from internal.patterns import AbstractUnitOfWork as RelationalDBUnitOfWork
 from utils.logger_utils import get_shared_logger
 from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_dt_to_str
 
