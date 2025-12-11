@@ -5,7 +5,7 @@ from sqlalchemy import UnaryExpression, asc, delete, desc, func, insert, select,
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from internal.domains.entities import GetMultiPostsFilter, PostEntity
-from internal.infrastructures.relational_db.abstraction import AbstractPostRepo
+from internal.domains.repositories.abstraction.post import AbstractPostRepo
 from internal.infrastructures.relational_db.postgres.models import Post, PostModelMapper
 from utils.time_utils import DATETIME_DEFAULT_FORMAT, from_str_to_dt
 

@@ -5,7 +5,7 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from internal.domains.entities import UserEntity
-from internal.infrastructures.relational_db.abstraction import AbstractUserRepo
+from internal.domains.repositories.abstraction.user import AbstractUserRepo
 from internal.infrastructures.relational_db.postgres.models import User, UserModelMapper
 
 
