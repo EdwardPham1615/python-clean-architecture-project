@@ -42,10 +42,10 @@ async def app_lifespan(app_status: DataResponse):
             )
             await cfg_manager.load()
             await cfg_manager.update_app_config()
-            logger.info(f"Load config from server successfully")
+            logger.info("Load config from server successfully")
         else:
             container.config.from_dict(app_config.model_dump())
-            logger.info(f"Load config from local successfully")
+            logger.info("Load config from local successfully")
 
         # Wire the container to all necessary modules
         container.wire(
