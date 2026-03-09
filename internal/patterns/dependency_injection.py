@@ -26,15 +26,28 @@ class Container(containers.DeclarativeContainer):
 
     # Infrastructures
     ## Relational DB
-    relational_db = providers.Resource(
+    relational_db = providers.Singleton(
         Database,
-        db_url=config.relational_db.url,
+        db_url=providers.Callable(
+            lambda host, port, dbname, username, password: (
+                f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{dbname}"
+            ),
+            host=config.relational_db.host,
+            port=config.relational_db.port,
+            dbname=config.relational_db.dbname,
+            username=config.relational_db.username,
+            password=config.relational_db.password,
+        ),
         enable_log=config.relational_db.enable_log,
         enable_migrations=config.relational_db.enable_auto_migrate,
         isolation_level=config.relational_db.isolation_level,
+        pool_size=config.relational_db.pool_size,
+        max_overflow=config.relational_db.max_overflow,
+        pool_timeout=config.relational_db.pool_timeout,
+        pool_recycle=config.relational_db.pool_recycle,
     )
 
-    relational_db_scoped_session = providers.Resource(
+    relational_db_scoped_session = providers.Singleton(
         relational_db.provided.scoped_session, relational_db
     )
 

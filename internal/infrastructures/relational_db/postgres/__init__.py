@@ -24,6 +24,10 @@ class PostgresDatabase:
         enable_log: bool = True,
         enable_migrations: bool = True,
         isolation_level: str = "SERIALIZABLE",
+        pool_size: int = 10,
+        max_overflow: int = 10,
+        pool_timeout: int = 30,
+        pool_recycle: int = 1800,
     ):
         self._db_url = db_url
         self._enable_log = enable_log
@@ -32,6 +36,10 @@ class PostgresDatabase:
             url=self._db_url,
             echo=self._enable_log,
             isolation_level=isolation_level,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_timeout=pool_timeout,
+            pool_recycle=pool_recycle,
         )
 
         self._session_factory = async_sessionmaker(

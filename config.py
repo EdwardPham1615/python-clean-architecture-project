@@ -66,12 +66,24 @@ class AuthenticationServiceConfig(BaseModel):
 
 class RelationalDBConfig(BaseModel):
     vendor: Optional[str] = Field("postgres")
-    url: str
-    enable_log: bool
-    enable_auto_migrate: bool
+    host: str = Field(default="")
+    port: int = 5432
+    dbname: str = Field(default="")
+    username: str = Field(default="")
+    password: str = Field(default="")
+    sslmode: str = Field(default="")
+    enable_log: bool = Field(default=False)
+    enable_auto_migrate: bool = Field(default=False)
     isolation_level: Optional[str] = (
         "SERIALIZABLE"  # "READ UNCOMMITTED”, “READ COMMITTED”, “REPEATABLE READ”, “SERIALIZABLE”
     )
+    pool_size: int = 10
+    pool_timeout: int = 30
+    pool_recycle: int = 1800
+    max_overflow: int = 10
+
+    def get_url(self) -> str:
+        return f"postgresql+asyncpg://{self.username}:{self.password}@{self.host}:{self.port}/{self.dbname}"
 
 
 class CfgManagerConfig(BaseModel):
