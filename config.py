@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -45,27 +43,27 @@ logger = DeferredLogger()
 
 
 class ReBACAuthorizationServiceConfig(BaseModel):
-    vendor: Optional[str] = Field("openfga")
-    url: str
-    token: str
-    store_id: str
-    authorization_model_id: str
-    timeout_in_millis: Optional[int] = 3000
+    vendor: str = Field(default="openfga")
+    url: str = Field(default="")
+    token: str = Field(default="")
+    store_id: str = Field(default="")
+    authorization_model_id: str = Field(default="")
+    timeout_in_millis: int = 3000
 
 
 class AuthenticationServiceConfig(BaseModel):
-    vendor: Optional[str] = Field("keycloak")
-    url: str
-    admin_username: str
-    admin_password: str
-    realm: str
-    client_id: str
-    client_secret: str
-    webhook_secret: str
+    vendor: str = Field(default="keycloak")
+    url: str = Field(default="")
+    admin_username: str = Field(default="")
+    admin_password: str = Field(default="")
+    realm: str = Field(default="")
+    client_id: str = Field(default="")
+    client_secret: str = Field(default="")
+    webhook_secret: str = Field(default="")
 
 
 class RelationalDBConfig(BaseModel):
-    vendor: Optional[str] = Field("postgres")
+    vendor: str = Field(default="postgres")
     host: str = Field(default="")
     port: int = 5432
     dbname: str = Field(default="")
@@ -74,9 +72,7 @@ class RelationalDBConfig(BaseModel):
     sslmode: str = Field(default="")
     enable_log: bool = Field(default=False)
     enable_auto_migrate: bool = Field(default=False)
-    isolation_level: Optional[str] = (
-        "SERIALIZABLE"  # "READ UNCOMMITTED”, “READ COMMITTED”, “REPEATABLE READ”, “SERIALIZABLE”
-    )
+    isolation_level: str = "SERIALIZABLE"  # "READ UNCOMMITTED”, “READ COMMITTED”, “REPEATABLE READ”, “SERIALIZABLE”
     pool_size: int = 10
     pool_timeout: int = 30
     pool_recycle: int = 1800
@@ -87,10 +83,10 @@ class RelationalDBConfig(BaseModel):
 
 
 class CfgManagerConfig(BaseModel):
-    enable: Optional[bool] = False
-    env: str
-    token: str
-    url: str
+    enable: bool = False
+    env: str = Field(default="")
+    token: str = Field(default="")
+    url: str = Field(default="")
 
 
 class AppConfig(BaseSettings):
@@ -102,23 +98,26 @@ class AppConfig(BaseSettings):
     )
 
     # === General App Settings ===
-    main_http_port: Optional[int] = 8080
-    health_check_http_port: Optional[int] = 5000
-    main_grpc_port: Optional[int] = 9090
-    log_level: Optional[str] = "INFO"
-    uvicorn_workers: Optional[int] = 1
+    main_http_port: int = 8080
+    health_check_http_port: int = 5000
+    main_grpc_port: int = 9090
+    log_level: str = "INFO"
 
     # === Config Manager ===
-    cfg_manager_service: CfgManagerConfig
+    cfg_manager_service: CfgManagerConfig = Field(default_factory=CfgManagerConfig)
 
     # === Relational DB ===
-    relational_db: RelationalDBConfig
+    relational_db: RelationalDBConfig = Field(default_factory=RelationalDBConfig)
 
     # === Authentication Service ===
-    authentication_service: AuthenticationServiceConfig
+    authentication_service: AuthenticationServiceConfig = Field(
+        default_factory=AuthenticationServiceConfig
+    )
 
     # === ReBAC Authorization Service ===
-    rebac_authorization_service: ReBACAuthorizationServiceConfig
+    rebac_authorization_service: ReBACAuthorizationServiceConfig = Field(
+        default_factory=ReBACAuthorizationServiceConfig
+    )
 
 
 # Load and validate configuration
