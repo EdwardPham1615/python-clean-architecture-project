@@ -10,14 +10,15 @@ from internal.controllers.grpc.protos import post_v1_pb2_grpc
 from internal.controllers.grpc.v1.endpoints import PostPRouter as PostPRouterV1
 from internal.controllers.http.v1.routes import api_router as api_router_v1
 from internal.controllers.responses import DataResponse, MessageResponse
+from internal.controllers.responses.success_code import server_ok
 from internal.patterns import Container
 from utils.logger_utils import GRPCLoggingInterceptor, get_shared_logger
 
 logger = get_shared_logger()
 
 
-def init_http_server() -> FastAPI:
-    server_ = FastAPI(default_response_class=ORJSONResponse)
+def init_http_server(app_status: DataResponse, lifespan=None) -> FastAPI:
+    server_ = FastAPI(default_response_class=ORJSONResponse, lifespan=lifespan)
 
     server_.add_middleware(
         middleware_class=CORSMiddleware,
@@ -36,6 +37,7 @@ def init_http_server() -> FastAPI:
         ],
     )
 
+    # Handle global exceptions
     @server_.exception_handler(HTTPException)
     async def http_exception_handler(_: Request, exc: HTTPException):
         logger.error(exc)
@@ -49,22 +51,18 @@ def init_http_server() -> FastAPI:
             content=jsonable_encoder(res),
         )
 
+    # Handle health check
+    @server_.get("/health-check")
+    async def health_check():
+        status_code = 200 if app_status.message == server_ok else 500
+        return ORJSONResponse(
+            status_code=status_code,
+            content=jsonable_encoder(app_status),
+        )
+
     server_.include_router(api_router_v1, prefix="/v1")
 
     return server_
-
-
-def init_health_check_server(app_status: DataResponse) -> FastAPI:
-    health_check_app = FastAPI()
-
-    @health_check_app.get("/health-check")
-    async def health_check():
-        return ORJSONResponse(
-            content=jsonable_encoder(app_status),
-            status_code=app_status.message.status_code,
-        )
-
-    return health_check_app
 
 
 def init_grpc_server(container: Container) -> grpc.aio.Server:

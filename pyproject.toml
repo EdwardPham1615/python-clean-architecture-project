@@ -24,6 +24,7 @@ dependencies = [
     "py-consul",
     "tenacity",
     "grpcio-tools",
+    "uvloop",
 ]
 
 [dependency-groups]

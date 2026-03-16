@@ -22,7 +22,7 @@ logger = get_shared_logger()
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, excluded_paths: list[str] = None):
+    def __init__(self, app, excluded_paths: list[str] = []):
         super().__init__(app)
         self.excluded_paths = excluded_paths or []
 
