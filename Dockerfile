@@ -1,9 +1,10 @@
 ## ------------------------------- Builder Stage ------------------------------ ##
-FROM python:3.13.2-bookworm AS builder
+FROM python:3.13.12-slim-bookworm AS builder
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
-        build-essential && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+        build-essential \
+        curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Download the latest installer, install it and then remove it
 ADD https://astral.sh/uv/install.sh /install.sh
@@ -20,7 +21,7 @@ COPY ./uv.lock .
 RUN uv sync
 
 ## ------------------------------- Production Stage ------------------------------ ##
-FROM python:3.13.2-slim-bookworm AS production
+FROM python:3.13.12-slim-bookworm AS production
 
 RUN useradd --create-home appuser
 
